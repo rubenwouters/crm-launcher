@@ -1,0 +1,96 @@
+.conversation{
+    padding: 0% 10%;
+    padding-bottom: 60px;
+
+    .bubble {
+        position: relative;
+        // width: 300px;
+        min-height: 60px;
+        padding: 20px;
+        background: #dbdbdb;
+        border-radius: 10px;
+        // margin-bottom: 20px;
+        float:none;
+
+        display:inline-block;
+        vertical-align:middle;
+        margin-right:-4px;
+    }
+
+    .bubble:after {
+        content: '';
+        position: absolute;
+        border-style: solid;
+        border-width: 15px 15px 15px 0;
+        border-color: transparent #dbdbdb;
+        display: block;
+        width: 0;
+        z-index: 1;
+        margin-top: -15px;
+        left: -15px;
+        top: 50%;
+    }
+
+    .bubble.answer{
+        background-color: $message-answer;
+        color: white;
+    }
+
+    .bubble.answer:after{
+        border-color: transparent $message-answer;
+    }
+
+    .thumb-picture {
+        float:none;
+        display:inline-block;
+        vertical-align:middle;
+        margin-right:-4px;
+        box-sizing: border-box;
+        border: 10px solid white;
+
+        img{
+            width: 100%;
+            border: 1px solid black;
+        }
+    }
+
+    .message{
+        padding-bottom: 10px;
+    }
+
+    .answer-textarea{
+        padding-left: 25px;
+        padding-right: 0px;
+        margin-top: 40px;
+        margin-bottom: 10px;
+
+        textarea{
+            padding: 10px 15px;
+            width: 100%;
+            outline: none;
+            resize: none;
+        }
+    }
+
+    .submit{
+        padding-left: 25px;
+        padding-right: 0px;
+        input{
+            width: 100%;
+            padding: 6px;
+            border: none;
+            color: white;
+            background-color: $btn-color;
+        }
+    }
+
+    .submit input:focus {
+        outline: none;
+    }
+
+    @media (max-width: 768px) {
+        .answer-textarea, .submit{
+            padding-left: 0px;
+        }
+    }
+}

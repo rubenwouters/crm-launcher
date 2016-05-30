@@ -1,0 +1,44 @@
+.cases-overview{
+    margin: 30px;
+    margin-top: 60px;
+
+    a{
+        text-decoration: none;
+        color: black;
+    }
+
+    .case-block{
+        background-color: $base-gray;
+        padding: 0;
+        box-sizing: border-box;
+        border: 6px solid white;
+    }
+
+    .profile-picture{
+        padding: 0;
+
+        img{
+            width: 100%;
+        }
+    }
+
+    .profile-info{
+        padding: 20px 30px;
+        h2{
+            margin-top: 0px;
+            margin-bottom: 0px;
+            font-size: 1.75em;
+        }
+
+        h3{
+            margin-top: 0px;
+            font-size: 1em;
+        }
+    }
+
+    .case-id h2{
+        text-align: right;
+        font-size: 1.3em;
+        padding-top: 5px;
+    }
+}

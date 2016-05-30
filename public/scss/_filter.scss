@@ -1,0 +1,41 @@
+.filter{
+    margin: 30px;
+    .open-cases, .new-cases, .closed-cases{
+        text-align: center;
+        font-size: 1.5em;
+        padding: 20px;
+        background-color: $base-gray;
+        color: black;
+        border: 5px solid white;
+        transition: all .3s;
+    }
+
+    .open-cases:hover, .new-cases:hover, .closed-cases:hover{
+        color: white;
+        background-color: $accent-color;
+        transition: all .3s;
+    }
+
+    .new-cases{
+        border-left: 0px;
+    }
+    .closed-cases{
+        border-right: 0px;
+    }
+
+    .active{
+        color: white;
+        background-color: $accent-color;
+        transition: all .3s;
+    }
+
+    .active:hover{
+        color: black;
+        background-color: $base-gray;
+        transition: all .3s;
+    }
+
+    a{
+        text-decoration: none;
+    }
+}

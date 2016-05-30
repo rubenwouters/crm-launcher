@@ -1,0 +1,30 @@
+{
+    "name": "rubenwouters/crm-launcher",
+    "description": "Manage your social media (Facebook & Twitter) all in one place. Create cases for every client that asks a question so you can take care of them the way they deserve.",
+    "keywords": ["Laravel", "CRM", "Facebook", "Twitter", "Social media", "customer"],
+
+    "authors": [
+        {
+            "name": "Ruben Wouters",
+            "email": "rubenwouters404@hotmail.com",
+            "homepage": "http://crmlauncher.io",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "laravel/socialite": "^2.0",
+        "laravelcollective/html": "5.2.*",
+        "facebook/php-sdk-v4" : "~5.0",
+        "guzzlehttp/oauth-subscriber": "0.3.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Rubenwouters\\CrmLauncher\\": "src/",
+            "Rubenwouters\\CrmLauncher\\database\\": "database/"
+        },
+        "files": [
+           "src/helpers.php"
+       ]
+   }
+}

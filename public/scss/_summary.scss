@@ -1,0 +1,49 @@
+.summary{
+    background-color: $base-gray;
+    padding: 20px;
+    margin-bottom: 60px;
+
+    h2{
+        color: $orange-title;
+        text-transform: uppercase;
+        font-weight: 600;
+        font-size: 1.5em;
+        margin-bottom: 0px;
+    }
+
+    h3{
+        margin-bottom: 5px;
+        font-size: 1.2em;
+        font-weight: 600;
+    }
+
+    .isPublic{
+        padding-top: 10px;
+        span{
+            font-weight: 600;
+        }
+    }
+
+    .co-operators{
+        ul{
+            list-style: none;
+            padding: 2px;
+        }
+    }
+
+    .summary-block{
+        h4{
+            font-size: 1em;
+            font-style: italic;
+            font-weight: 500;
+
+            span{
+                font-weight: 600;
+            }
+        }
+
+        p{
+            margin-top: 30px;
+        }
+    }
+}
