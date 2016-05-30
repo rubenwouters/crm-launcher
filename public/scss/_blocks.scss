@@ -27,14 +27,10 @@
 
     .col-lg-3{
         background-color: $dark-gray;
-        color: white;
-        padding: 30px;
-        transition: all .2s;
-    }
 
-    .col-lg-3:hover{
-        background-color: darken($dark-gray, 2%);
-        transition: all .2s;
+        // color: white;
+        color: black;
+        padding: 30px;
     }
 
     .number{
@@ -52,7 +48,7 @@
 
 .third-block{
     // height: 250px;
-    line-height: 250px;
+    line-height: 200px;
     font-size: 2.5em;
     text-align: center;
 

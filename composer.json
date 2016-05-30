@@ -4,7 +4,6 @@
     "keywords": ["Laravel", "CRM", "Facebook", "Twitter", "Social media", "customer"],
     "homepage": "http://crmlauncher.io",
     "license": "MIT",
-
     "authors": [
         {
             "name": "Ruben Wouters",

@@ -1,6 +1,6 @@
 .filter{
     margin: 30px;
-    .open-cases, .new-cases, .closed-cases{
+    .open-cases, .new-cases, .closed-cases, .my-cases{
         text-align: center;
         font-size: 1.5em;
         padding: 20px;
@@ -8,11 +8,22 @@
         color: black;
         border: 5px solid white;
         transition: all .3s;
+        cursor: pointer;
+
+        input[type="checkbox"]{
+            display: none;
+        }
     }
 
-    .open-cases:hover, .new-cases:hover, .closed-cases:hover{
-        color: white;
-        background-color: $accent-color;
+     #closed:checked + .closed-cases{
+        font-size: 100em;
+        background-color: red !important;
+        color: red !important;
+    }
+
+    .open-cases:hover, .new-cases:hover, .closed-cases:hover, .my-cases:hover{
+        color: black;
+        background-color: darken($base-gray, 3%);
         transition: all .3s;
     }
 
@@ -23,16 +34,15 @@
         border-right: 0px;
     }
 
-    .active{
+    .active, .active:hover{
         color: white;
         background-color: $accent-color;
         transition: all .3s;
     }
 
-    .active:hover{
-        color: black;
-        background-color: $base-gray;
-        transition: all .3s;
+    .disabled{
+        opacity: .4;
+        pointer-events:none;
     }
 
     a{

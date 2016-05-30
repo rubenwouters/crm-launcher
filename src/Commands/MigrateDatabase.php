@@ -36,7 +36,7 @@ class MigrateDatabase extends Command
 
         $this->paths = [
             'packages/rubenwouters/crm-launcher/database/Migrations/',
-            'vendor/Rubenwouters/CrmLauncher/database/Migrations',
+            'vendor/rubenwouters/crm-launcher/database/Migrations',
        ];
     }
 

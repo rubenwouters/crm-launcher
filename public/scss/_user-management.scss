@@ -1,0 +1,125 @@
+.user-management{
+
+    position: relative;
+    margin: 0% 10%;
+    
+    .search-block{
+        text-align: center;
+    }
+
+    .user-blocks{
+        margin: 40px 0px;
+
+        label{
+            display: block;
+        }
+    }
+
+    .user-block{
+        text-align: center;
+        background-color: $base-gray;
+        box-sizing: border-box;
+        border: 10px solid white;
+        padding: 0;
+        cursor: pointer;
+
+        .actions{
+            background-size: 200% 100%;
+            background-image: linear-gradient(to right,  darken($base-gray, 30%) 50%, #6CCB6C 50%);
+            transition: background-position .3s;
+            color: white;
+            padding: 4px 0px 4px 0px;
+
+            h3{
+                margin: 10px;
+            }
+        }
+
+        .initials{
+            font-size: 10em;
+            font-weight: 600;
+        }
+    }
+
+    .addUser{
+        position: relative;
+        .initials{
+            position: relative;
+            font-size: 7rem;
+            padding: 39px;
+            color:darken($base-gray, 50%);
+            transition: transform .3s;
+        }
+
+        div{
+            position: relative;
+            font-size: 2.5rem;
+            padding-top: 27px;
+        }
+    }
+
+    .addUser:hover .initials{
+
+        transition: transform .3s;
+        transform: scale(1.1);
+
+    }
+
+    .user-block:hover .actions, .user-block.canViewCRM .actions{
+        background-position: -100% 0;
+    }
+
+    .user-block.canViewCRM:hover .actions{
+        background-position: 0% 0;
+    }
+
+    .cbUser{
+        display: none;
+    }
+
+    .team-title{
+        margin-top: 50px;
+    }
+
+    .keyword{
+        font-weight: 600;
+
+        a{
+            color: black;
+            text-decoration: none;
+        }
+    }
+
+    .keyword:hover{
+        text-decoration: line-through;
+    }
+}
+
+
+.add-user{
+    padding: 10% 10%;
+
+    input{
+        width: 100%;
+        height: 35px;
+        padding: 10px;
+        outline: none;
+    }
+
+    div label{
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+
+    .submit{
+        margin-top: 30px;
+
+        input{
+            width: 100%;
+            padding: 4px;
+            border: none;
+            color: white;
+            background-color: #DA5454;
+        }
+    }
+}

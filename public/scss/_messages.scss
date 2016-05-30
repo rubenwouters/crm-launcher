@@ -40,6 +40,11 @@
         border-color: transparent $message-answer;
     }
 
+    .attention{
+        transition: transform .3s;
+        transform: scale(1.08);
+    }
+
     .thumb-picture {
         float:none;
         display:inline-block;
@@ -50,12 +55,18 @@
 
         img{
             width: 100%;
-            border: 1px solid black;
+            border-radius:50%;
+            border: 1px solid #E6E6E6;
         }
     }
 
     .message{
         padding-bottom: 10px;
+        transition: all .3s;
+    }
+
+    .inner{
+        padding-left: 45px;
     }
 
     .answer-textarea{
@@ -77,11 +88,16 @@
         padding-right: 0px;
         input{
             width: 100%;
-            padding: 6px;
+            padding: 8px 6px;
             border: none;
             color: white;
             background-color: $btn-color;
+            transition: background-color .3s;
         }
+    }
+
+    .submit:hover input{
+        background-color: darken($btn-color, 10%);
     }
 
     .submit input:focus {
@@ -93,4 +109,89 @@
             padding-left: 0px;
         }
     }
+
+    .delete-answer, .reply-inner{
+        position: absolute;
+        right: 15px;
+        top: 5px;
+        display: none;
+        transition: all .3s;
+
+        a{
+            color: white;
+        }
+    }
+
+    .bubble.answer:hover .delete-answer, .bubble:hover .reply-inner{
+        display: block;
+        transition: all .3s;
+    }
+
+    a.reply, a.reply_own{
+        padding: 0px 5px;
+        text-decoration: none;
+    }
+
+    .inner-comments, .inner-comments-answers{
+        display: none;
+    }
+
+    .more, .more-answer{
+        text-align: right;
+        cursor: pointer;
+    }
+
+    .media-item{
+        position:relative;
+        overflow:hidden;
+        width: 50%;
+        height: auto;
+        float: left;
+
+        img{
+            width: 100%;
+            height: 140px;
+            background-size: cover;
+            background-position: center;
+        }
+    }
+
+    .answer_block{
+        display: none;
+    }
+
+    .specific_answer{
+        width: 100%;
+        padding-top: 5px;
+        padding-left:10px;
+        resize: none;
+        outline: none;
+    }
+
+    .post-date{
+        font-size:.8em;
+    }
+
+    .answer-post-date{
+        text-align: center;
+        opacity: 0;
+    }
+}
+
+.word-count{
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.orange-wordcount{
+    color: orange;
+}
+
+.red-wordcount{
+    color: red;
+}
+
+input[disabled='disabled']{
+    transition: all .3s;
+    background-color: lighten($header-backgroundcolor, 20%) !important;
 }

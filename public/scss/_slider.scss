@@ -14,3 +14,15 @@ h2.most-influential{
     font-size: 2.5em;
     padding-top: 40px;
 }
+
+.unslider-nav{
+    li{
+        border-color: lighten($sidebar-hover-color, 20%) !important;
+        background-color: lighten($sidebar-hover-color, 20%) !important;
+    }
+
+    li.unslider-active{
+        border-color: $sidebar-hover-color !important;
+        background-color: $sidebar-hover-color !important;
+    }
+}

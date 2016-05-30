@@ -12,13 +12,17 @@
         padding: 0;
         box-sizing: border-box;
         border: 6px solid white;
+        min-height: 500px;
     }
 
     .profile-picture{
-        padding: 0;
+        padding: 10px;
+        text-align: center;
 
         img{
             width: 100%;
+            border-radius: 50%;
+            filter: grayscale(80%);
         }
     }
 
