@@ -13,7 +13,7 @@
             <h2>{{ trans('crm-launcher::dashboard.not_there_yet') }}</h2>
             <h3>{{ trans('crm-launcher::dashboard.facebook_login') }}</h3>
 
-            <a href="/facebook"><img class="login-btn" src="{{ asset("crm-launcher/img/fb_login.png" }}" alt="" /></a>
+            <a href="/facebook"><img class="login-btn" src="{{asset("crm-launcher/img/fb_login.png"}}" alt="" /></a>
         </div>
     </div>
 @endsection
