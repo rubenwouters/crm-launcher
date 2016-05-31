@@ -56,6 +56,11 @@ $(document).ready(function(){
 			}
 			$('textarea.' + trigger).focus();
 		});
+
+		if($(this).attr('screenName')) {
+			$('textarea[name=answer]').val('@' + $(this).attr('screenName') + ' ');
+			scrollToAnchor('.word-count');
+		}
 		$('input[name="in_reply_to"]').attr('value', $(this).attr('replyId'));
 	});
 
@@ -109,7 +114,7 @@ $(document).ready(function(){
 			$('.add-summary span').text('Cancel summary');
 		}
 		$('.add-summary-block').slideToggle();
-		 scrollToAnchor('.add-summary-block .submit');
+		 scrollToAnchor('.summary');
 	});
 
 	$('.more-summaries').click(function(){

@@ -54,9 +54,15 @@ class CasesController extends Controller
      */
     public function filter(Request $request)
     {
-        if ($request->input('keywords')) {
+        $searchResult['bool'] = true;
+        $searchResult['keyword'] = $request->input('keywords');
+
+        if ($request->input('keywords') && $this->searchCase($request)) {
             $cases = $this->searchCase($request);
         } else {
+            if (! $this->searchCase($request)) {
+                $searchResult['bool'] = false;
+            }
             $cases = CaseOverview::orderBy('updated_at', 'DESC')->orderBy('id', 'DESC');
         }
 
@@ -79,7 +85,10 @@ class CasesController extends Controller
             $cases = $cases->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC')->paginate(12);
         }
 
-        return view('crm-launcher::cases.index')->with('cases', $cases)->with('actives', static::$arActive);
+        return view('crm-launcher::cases.index')
+            ->with('cases', $cases)
+            ->with('searchResult', $searchResult)
+            ->with('actives', static::$arActive);
     }
 
     /**
@@ -115,6 +124,10 @@ class CasesController extends Controller
             $query = $contact->cases();
         }
 
+        if (! isset($query)) {
+            return false;
+        }
+
         return $query;
     }
 
@@ -145,6 +158,12 @@ class CasesController extends Controller
         $case->save();
 
         $message = $case->messages->sortByDesc('id')->first();
+        $tweetId = $message->tweet_id;
+
+        if ($request->input('in_reply_to', '!=', '')) {
+            $tweetId = $request->input('in_reply_to');
+        }
+
         $handle = $case->contact->twitter_handle;
 
         if ($case->origin != 'Twitter mention') {
@@ -153,7 +172,7 @@ class CasesController extends Controller
             $type = 'public';
         }
 
-        $reply = answerTweet($request, $type, $message->tweet_id, $handle);
+        $reply = answerTweet($request, $type, $tweetId, $handle);
         $this->insertAnswer('tweet', $request, $case, $message, $reply, $handle);
         return back();
     }
@@ -198,6 +217,8 @@ class CasesController extends Controller
         } else {
             $this->insertAnswer('facebook_post', $request, $case, $answer_to, $reply, null);
         }
+
+        $this->moveCase($case);
 
         return back();
     }
@@ -364,8 +385,15 @@ class CasesController extends Controller
             }
 
             if ($inReplyTo != null && Answer::where('tweet_id', $inReplyTo)->exists()) {
+                $contact = $this->createContact('twitter_mention', $mention);
+                $message->contact_id = $contact->id;
                 $answer = Answer::where('tweet_id', $inReplyTo)->first();
                 $message->case_id = $answer->case_id;
+            } else if ($inReplyTo != null && Message::where('tweet_id', $inReplyTo)->exists()) {
+                $contact = $this->createContact('twitter_mention', $mention);
+                $message->contact_id = $contact->id;
+                $msg = Message::where('tweet_id', $inReplyTo)->first();
+                $message->case_id = $msg->case_id;
             } else if ($inReplyTo != null && Publishment::where('tweet_id', $inReplyTo)->exists()) {
                 continue;
             } else if ($inReplyTo != null) {
@@ -835,7 +863,11 @@ class CasesController extends Controller
             $answer->tweet_id = $reply['id_str'];
 
             if ($case->origin == 'Twitter mention') {
-                $answer->tweet_reply_id = $reply['in_reply_to_status_id_str'];
+                if ($reply['in_reply_to_status_id_str'] != null) {
+                    $answer->tweet_reply_id = $reply['in_reply_to_status_id_str'];
+                } else {
+                    $answer->tweet_reply_id = 0;
+                }
             }
         } else if ($type == 'facebook_post') {
             $answer->fb_post_id = $reply->id;

@@ -21,17 +21,17 @@ class DashboardController extends Controller
     */
     public function index()
     {
-        $filledOut = true;
+        $filledOut = $this->isEnvFilledOut();
+
+        if (! $filledOut) {
+            return view('crm-launcher::dashboard.permissions')->with('filledOut', $filledOut);
+        }
 
         if (! count(Configuration::all()) || (count(Configuration::all()) == 1 && Configuration::FbAccessToken() == "")) {
-            return view('crm-launcher::dashboard.permissions');
+            return view('crm-launcher::dashboard.permissions')->with('filledOut', $filledOut);
         }
 
-        if ( (!$this->lastUpdate() || $this->lastUpdate() > 3600) && !$this->valid_env()) {
-            $filledOut = false;
-        }
-
-        if ($this->lastUpdate() > 900 || !$this->lastUpdate()) {
+        if (($this->lastUpdate() > 900 || !$this->lastUpdate()) &&  $this->validTwitterSettings()) {
             $this->fetchFollowers();
             $this->fetchLikes();
             Log::updateLog('dashboard_update');
@@ -83,10 +83,10 @@ class DashboardController extends Controller
     }
 
     /**
-     * Check if ENV file is filled out properly
+     * Checks if .ENV file is filled out
      * @return boolean
      */
-    private function valid_env()
+    private function isEnvFilledOut()
     {
         if (! config('crm-launcher.twitter_credentials.twitter_consumer_key') ||
             ! config('crm-launcher.twitter_credentials.twitter_consumer_secret') ||
@@ -99,25 +99,32 @@ class DashboardController extends Controller
             return false;
         }
 
+        return true;
+    }
+
+    private function validTwitterSettings()
+    {
         try {
             $client = initTwitter();
             $verification = $client->get('account/verify_credentials.json');
             $verification = json_decode($verification->getBody(), true);
 
-            if (Configuration::first()->exists()) {
+            if (Configuration::exists() && Configuration::first()->exists()) {
                 $this->insertTwitterId($verification);
             }
 
+            return true;
+
         } catch (\GuzzleHttp\Exception\ClientException $e) {
+
             if ($e->getCode() == 429) {
                 getErrorMessage($e->getResponse()->getStatusCode());
             } else {
                 getErrorMessage('bad_auth');
             }
 
-            return back();
+            return false;
         }
-        return true;
     }
 
     /**

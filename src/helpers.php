@@ -204,7 +204,7 @@ if (! function_exists('initFb'))
         $token = Configuration::FbAccessToken();
 
         try {
-            $reply = $fb->post('/' . $messageId . '/comments?message=' . $answer , array('access_token' => $token));
+            $reply = $fb->post('/' . $messageId . '/comments?message=' . rawurlencode($answer) , array('access_token' => $token));
             Session::flash('flash_success', trans('crm-launcher::success.post_sent'));
 
             return json_decode($reply->getBody());

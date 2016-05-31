@@ -72,10 +72,14 @@
                                 <a class="reply" answerTrigger="{{$key}}" replyId="{{$message->fb_post_id}}" href="#!">
                                     <i class="fa fa-reply" aria-hidden="true"></i>
                                 </a>
+                            @elseif ($key != 0 &&  $case->origin == "Twitter mention"))
+                                <a class="reply" answerTrigger="{{$key}}" replyId="{{$message->tweet_id}}" screenName="{{$message->contact->twitter_handle}}" href="#!">
+                                    <i class="fa fa-reply" aria-hidden="true"></i>
+                                </a>
                             @endif
                         </div>
                         @if (count($message->media))
-                            @foreach($message->media as $key => $pic)
+                            @foreach($message->media as $nr => $pic)
                                 <div class="media-item">
                                     {{ $message->message }}
                                     <a class="gallery" href="#" data-featherlight="{{$pic->url}}">
@@ -185,8 +189,8 @@
                     </div>
 
                     @if ($case->origin == 'Facebook post' && count($answer->innerComment))
-                        <div id="answer{{$key}}" class="inner-comments-answers">
-                            @foreach($answer->innerComment as $nr => $comment)
+                        <div id="answer{{$nr}}" class="inner-comments-answers">
+                            @foreach($answer->innerComment as $comment)
                                 <div class="inner message">
                                     <div class="hidden-xs col-xs-2 col-md-3 thumb-picture">
                                         @if ($comment->contact()->exists())
@@ -223,7 +227,7 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div toggle-nr-answer='{{$key}}' class="more-answer">Comments <i class="fa fa-caret-down" aria-hidden="true"></i></div>
+                        <div toggle-nr-answer='{{$nr}}' class="more-answer">Comments <i class="fa fa-caret-down" aria-hidden="true"></i></div>
                     @endif
                 @endforeach
             @endforeach
@@ -239,9 +243,9 @@
                     <div class="col-lg-12 answer-textarea static-parent">
                         @if($case->origin == 'Twitter mention')
                             <div class="word-count">{{ strlen($handle) + 2}}/140</div>
+                            {!! Form::hidden('in_reply_to', '') !!}
                             {!! Form::textarea('answer', '@' . $handle . ' ' , ['placeholder' => 'Write your message..', 'rows' => 4, 'cols' => 40, 'class' => 'maxed']) !!}
                         @else
-                            {!! Form::hidden('in_reply_to', '') !!}
                             {!! Form::textarea('answer', null, ['placeholder' => 'Write your message..', 'rows' => 4, 'cols' => 40]) !!}
                         @endif
                     </div>

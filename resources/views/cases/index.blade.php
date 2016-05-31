@@ -31,6 +31,11 @@
         </div>
 
     <div class="row search">
+
+        @if (isset($searchResult) && $searchResult['keyword'] != "" && (! $searchResult['bool'] || count($cases) < 1))
+            <h3>No results where found for: {{$searchResult['keyword']}}</h3>
+        @endif
+
         <div class="col-xs-12 search-block">
                 {!! Form::text('keywords', null, ['placeholder' => 'Search case by id, name, keyword, date or social media ', 'class' => 'search-case-bar']) !!}
         </div>
@@ -38,15 +43,13 @@
     {!! Form::close() !!}
 
     {{-- Cases overview --}}
-        <div class="row cases-overview">
+    <div class="row cases-overview">
 
         @foreach($cases as $key => $case)
             <a href="/crm/case/{{$case->id}}">
 
                 <div class="col-xs-10 col-sm-6 col-md-4 col-lg-3 case-block">
-                    <div class=" col-xs-12 profile-picture" style="background-image:url({{getOriginalImg($case->contact->profile_picture)}});background-size:cover;background-repeat:no-repeat;height: 300px;-webkit-filter:grayscale(50%);)">
-                        {{-- <img src="{{ getOriginalImg($case->contact->profile_picture) }}" alt="" /> --}}
-                    </div>
+                    <div class=" col-xs-12 profile-picture" style="background-image:url({{getOriginalImg($case->contact->profile_picture)}});background-size:cover;background-repeat:no-repeat;height: 300px;-webkit-filter:grayscale(50%);)"></div>
                     <div class=" col-md-12 profile-info">
                         <div class="row">
                             <div class="col-xs-11">
