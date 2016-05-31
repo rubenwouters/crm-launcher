@@ -110,7 +110,7 @@
                                     @elseif(strpos($case->origin, 'Twitter') !== false) && $case->contact()->exists())
                                         <img src="{{ getOriginalImg($case->contact->profile_picture) }}" alt="" />
                                     @else
-                                        <img src="../../img/profile_picture.png" alt="" />
+                                        <img src="{{ asset("crm-launcher/img/profile_picture.png") }}" alt="" />
                                     @endif
                                 </div>
                                 @if(! $comment->contact_id)
@@ -145,7 +145,7 @@
                 @foreach($message->answers as $nr => $answer)
                     <div class="message">
                         <div class="hidden-xs col-xs-2 col-md-3 thumb-picture">
-                            <img src="../../img/profile_picture.png" alt="" />
+                            <img src="{{ asset("crm-launcher/img/profile_picture.png") }" alt="" />
                         </div>
                         <div class="col-xs-10 col-md-9 bubble answer" operatorId="{{$answer->user->id}}">
                             <div class="delete-answer">
@@ -194,7 +194,7 @@
                                         @elseif(strpos($case->origin, 'Twitter') !== false) && $case->contact()->exists())
                                             <img src="{{ getOriginalImg($case->contact->profile_picture) }}" alt="" />
                                         @else
-                                            <img src="../../img/profile_picture.png" alt="" />
+                                            <img src="{{ asset("crm-launcher/img/profile_picture.png") }}" alt="" />
                                         @endif
                                     </div>
                                     @if(! $comment->contact_id)

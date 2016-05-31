@@ -46,6 +46,10 @@ class CrmLauncherServiceProvider extends ServiceProvider
         ]);
 
         $this->publishes([
+            __DIR__.'/../public' => base_path('public/crm-launcher/'),
+        ]);
+
+        $this->publishes([
             __DIR__.'/../config/crm-launcher.php' => config_path('crm-launcher.php'),
         ]);
     }
