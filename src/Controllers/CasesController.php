@@ -539,7 +539,9 @@ class CasesController extends Controller
             $message->contact_id = $contact->id;
             $message->fb_post_id = $post->id;
             $message->case_id = $case->id;
-            $message->message = $post->message;
+            if (isset($post->message)) {
+                $message->message = $post->message;
+            }
             $message->post_date = changeFbDateFormat($post->created_time);
             $message->save();
 

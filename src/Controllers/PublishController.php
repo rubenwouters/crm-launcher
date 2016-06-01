@@ -219,7 +219,8 @@ class PublishController extends Controller
 
         foreach ($mentions as $key => $mention) {
             if ($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || Reaction::where('tweet_id', $mention['in_reply_to_status_id_str'])->exists()) {
-                $this->insertReaction('twitter', $mention, $id);
+                $reaction = $this->insertReaction('twitter', $mention, $id);
+                Media::handleMedia($reaction->id, $mention, 'twitter_reaction');
             }
         }
     }

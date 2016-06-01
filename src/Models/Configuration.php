@@ -18,14 +18,4 @@ class Configuration extends Model
     {
         return $query->first()->twitter_id;
     }
-
-    public function scopeFollowers($query)
-    {
-        return $query->first()->twitter_followers;
-    }
-
-    public function scopeLikes($query)
-    {
-        return $query->first()->facebook_likes;
-    }
 }

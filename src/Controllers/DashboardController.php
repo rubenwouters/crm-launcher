@@ -27,11 +27,11 @@ class DashboardController extends Controller
             return view('crm-launcher::dashboard.permissions')->with('filledOut', $filledOut);
         }
 
-        if (! count(Configuration::all()) || (count(Configuration::all()) == 1 && Configuration::FbAccessToken() == "")) {
+        if (! Configuration::count() || Configuration::count() == 1 && Configuration::FbAccessToken() == "") {
             return view('crm-launcher::dashboard.permissions')->with('filledOut', $filledOut);
         }
 
-        if (($this->lastUpdate() > 900 || !$this->lastUpdate()) &&  $this->validTwitterSettings()) {
+        if ($this->validTwitterSettings() && ($this->lastUpdate() > 900 || !$this->lastUpdate())) {
             $this->fetchFollowers();
             $this->fetchLikes();
             Log::updateLog('dashboard_update');
@@ -44,8 +44,8 @@ class DashboardController extends Controller
         $avgMessages = $this->getAvgMessages();
         $avgHelpers = $this->getAvgHelpers();
         $todaysMessages = $this->getTodaysMessages();
-        $followers = Configuration::followers();
-        $likes = Configuration::likes();
+        $followers = Configuration::first()->twitter_followers;
+        $likes = Configuration::first()->facebook_likes;
 
         return view('crm-launcher::dashboard.index')
             ->with('newCases', $newCases)
@@ -66,6 +66,7 @@ class DashboardController extends Controller
     public function askFbPermissions()
     {
         return Socialite::with('facebook')->scopes(['publish_pages', 'manage_pages', 'read_page_mailboxes'])->redirect();
+
     }
 
     /**
@@ -74,10 +75,16 @@ class DashboardController extends Controller
      */
     public function fbCallback()
     {
-        $fbUser = Socialite::with('facebook')->user();
-        $token = $fbUser->token;
-        $pageAccessToken = $this->getPageAccessToken($token);
-        $this->insertFbToken($pageAccessToken);
+        try {
+            $fbUser = Socialite::with('facebook')->user();
+            $token = $fbUser->token;
+            $pageAccessToken = $this->getPageAccessToken($token);
+            if ($pageAccessToken) {
+                $this->insertFbToken($pageAccessToken);
+            }
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+        }
 
         return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
     }
@@ -99,6 +106,7 @@ class DashboardController extends Controller
             return false;
         }
 
+        $this->validTwitterSettings();
         return true;
     }
 
@@ -125,6 +133,8 @@ class DashboardController extends Controller
 
             return false;
         }
+
+        return true;
     }
 
     /**
@@ -135,8 +145,14 @@ class DashboardController extends Controller
     private function getPageAccessToken($userToken)
     {
         $fb = initFb();
-        $response = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=access_token', $userToken);
-        $response = json_decode($response->getBody());
+
+        try {
+            $response = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=access_token', $userToken);
+            $response = json_decode($response->getBody());
+        } catch (Exception $e) {
+            getErrorMessage('permission');
+            return false;
+        }
 
         return $response->access_token;
     }

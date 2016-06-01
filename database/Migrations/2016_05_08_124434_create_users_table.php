@@ -31,6 +31,7 @@ class CreateUsersTable extends Migration
                         $table->$type($field);
                     }
                 }
+                $table->timestamps();
             });
         } else {
             Schema::create('users', function($table) {
@@ -40,6 +41,7 @@ class CreateUsersTable extends Migration
                         $table->$type($field);
                     }
                 }
+                $table->timestamps();
             });
         }
     }

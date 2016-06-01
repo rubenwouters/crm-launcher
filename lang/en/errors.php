@@ -31,5 +31,7 @@ return [
     '272' => "You are not muting the specified user.",
     '354' => "You've used too much characters.",
     '100' => "This post might be deleted. You can't interact with deleted posts.",
+    '400' => "Authentication failed. Please try again to coninue.",
+    'permission' => "Not all asked permissions were granted. Please grant all asked permissions.",
     'de-auth_own' => "It's not possible to de-authorize yourself.",
 ];

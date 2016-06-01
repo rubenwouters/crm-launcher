@@ -34,17 +34,25 @@ class Media extends Model
             $msg = InnerComment::find($messageId);
         }
 
-        if ($type == 'twitter' && ! empty($message['extended_entities']) && !empty($message['extended_entities']['media'])) {
+        if (($type == 'twitter' || $type == 'twitter_reaction') && ! empty($message['extended_entities']) && !empty($message['extended_entities']['media'])) {
             foreach ($message['extended_entities']['media'] as $key => $picture) {
                 $media = new Media();
-                $media->message_id = $messageId;
+                if ($type == 'twitter_reaction') {
+                    $media->reaction_id = $messageId;
+                } else {
+                    $media->message_id = $messageId;
+                }
                 $media->url = $picture['media_url'];
                 $media->save();
             }
-        } else if ($type == 'twitter' && ! empty($message['entities']) && !empty($message['entities']['media'])) {
+        } else if (($type == 'twitter' || $type == 'twitter_reaction') && ! empty($message['entities']) && !empty($message['entities']['media'])) {
             foreach ($message['entities']['media'] as $key => $picture) {
                 $media = new Media();
-                $media->message_id = $messageId;
+                if ($type == 'twitter_reaction') {
+                    $media->reaction_id = $messageId;
+                } else {
+                    $media->message_id = $messageId;
+                }
                 $media->url = $picture['media_url'];
                 $media->save();
             }
