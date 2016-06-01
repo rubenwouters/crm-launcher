@@ -35,7 +35,12 @@ class CasesController extends Controller
     public function index()
     {
         $secondsAgo = Log::secondsAgo('fetching');
-        if (! $secondsAgo || $secondsAgo > 60) {
+
+        if (! $secondsAgo) {
+            $this->initIds();
+        }
+
+        if ($secondsAgo > 60) {
             $this->collectPrivateMessages();
             $this->collectMentions();
             $this->collectDirectMessages();
@@ -372,7 +377,7 @@ class CasesController extends Controller
      */
     private function collectMentions()
     {
-        $mentions = fetchMentions();
+        $mentions = fetchMentions('message');
 
         foreach ($mentions as $key => $mention) {
             $date = changeDateFormat($mention['created_at']);
@@ -389,11 +394,13 @@ class CasesController extends Controller
                 $message->contact_id = $contact->id;
                 $answer = Answer::where('tweet_id', $inReplyTo)->first();
                 $message->case_id = $answer->case_id;
+                $case = CaseOverview::find($answer->case_id);
             } else if ($inReplyTo != null && Message::where('tweet_id', $inReplyTo)->exists()) {
                 $contact = $this->createContact('twitter_mention', $mention);
                 $message->contact_id = $contact->id;
                 $msg = Message::where('tweet_id', $inReplyTo)->first();
                 $message->case_id = $msg->case_id;
+                $case = CaseOverview::find($msg->case_id);
             } else if ($inReplyTo != null && Publishment::where('tweet_id', $inReplyTo)->exists()) {
                 continue;
             } else if ($inReplyTo != null) {
@@ -406,7 +413,9 @@ class CasesController extends Controller
             $message->message = $mention['text'];
             $message->post_date = $date;
             $message->save();
+
             Media::handleMedia($message->id, $mention, 'twitter');
+            $this->updateCase($case->id, 'twitter', $mention['id_str']);
         }
     }
 
@@ -440,6 +449,7 @@ class CasesController extends Controller
             $message->save();
 
             Media::handleMedia($message->id, $direct, 'twitter');
+            $this->updateCase($case->id, 'twitter', $direct['id_str']);
         }
     }
 
@@ -533,6 +543,7 @@ class CasesController extends Controller
             $message->post_date = changeFbDateFormat($post->created_time);
             $message->save();
 
+            $this->updateCase($case->id, 'facebook', $post->id);
             Media::handleMedia($message->id, $post, 'facebook');
         }
 
@@ -582,10 +593,31 @@ class CasesController extends Controller
                         $message->message = $result->message;
                         $message->post_date = changeFbDateFormat($result->created_time);
                         $message->save();
+
+                        $this->updateCase($case->id, 'facebook', $conversation->id);
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Update case table with latest id's added to the case
+     * @param  integer $caseId
+     * @param  integer $id
+     * @return void
+     */
+    private function updateCase($caseId, $type, $id)
+    {
+        $case = CaseOverview::find($caseId);
+
+        if ($type == 'facebook') {
+            $case->latest_fb_id = $id;
+        } else {
+            $case->latest_tweet_id = $id;
+        }
+
+        $case->save();
     }
 
     /**
@@ -663,6 +695,7 @@ class CasesController extends Controller
                             $msg->save();
 
                             Media::handleMedia($msg->id, $comment, 'facebook_comment');
+                            $this->updateCase($case->id, 'facebook', $message->fb_post_id);
                         }
                     }
                 }
@@ -678,45 +711,45 @@ class CasesController extends Controller
     private function fetchInnerComments($newest)
     {
 
-            $messages = Message::where('fb_post_id', '!=', '')->get();
-            $answers = Answer::where('fb_post_id', '!=', '')->get();
+        $messages = Message::where('fb_post_id', '!=', '')->get();
+        $answers = Answer::where('fb_post_id', '!=', '')->get();
 
-            $messages = $messages->merge($answers);
+        $messages = $messages->merge($answers);
 
-            foreach ($messages as $key => $message) {
+        foreach ($messages as $key => $message) {
 
-                $comments = fetchInnerComments($newest, $message['fb_post_id']);
+            $comments = fetchInnerComments($newest, $message['fb_post_id']);
 
-                foreach ($comments->data as $key => $comment) {
-                    if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
-                        && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
-                    ) {
-                        if (! Contact::FindByFbId($comment->from->id)->exists()) {
-                            $contact = $this->createContact('facebook_post', $comment);
-                        } else {
-                            $contact = Contact::FindByFbId($comment->from->id)->first();
-                        }
-
-                        $innerComment = new InnerComment();
-                        $innerComment->fb_reply_id = $message['fb_post_id'];
-                        $innerComment->post_date = changeFbDateFormat($comment->created_time);
-                        $innerComment->contact_id = $contact->id;
-
-                        if (is_a($message, "Rubenwouters\CrmLauncher\Models\Answer")) {
-                            $innerComment->answer_id = $message['id'];
-                        } else {
-                            $innerComment->message_id = $message['id'];
-                        }
-
-                        $innerComment->fb_post_id = $comment->id;
-                        // $innerComment->case_id = $message->case->id;
-                        $innerComment->message = $comment->message;
-                        $innerComment->save();
-
-                        Media::handleMedia($innerComment->id, $comment, 'facebook_innerComment');
+            foreach ($comments->data as $key => $comment) {
+                if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
+                    && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
+                ) {
+                    if (! Contact::FindByFbId($comment->from->id)->exists()) {
+                        $contact = $this->createContact('facebook_post', $comment);
+                    } else {
+                        $contact = Contact::FindByFbId($comment->from->id)->first();
                     }
+
+                    $innerComment = new InnerComment();
+                    $innerComment->fb_reply_id = $message['fb_post_id'];
+                    $innerComment->post_date = changeFbDateFormat($comment->created_time);
+                    $innerComment->contact_id = $contact->id;
+
+                    if (is_a($message, "Rubenwouters\CrmLauncher\Models\Answer")) {
+                        $innerComment->answer_id = $message['id'];
+                    } else {
+                        $innerComment->message_id = $message['id'];
+                    }
+
+                    $innerComment->fb_post_id = $comment->id;
+                    // $innerComment->case_id = $message->case->id;
+                    $innerComment->message = $comment->message;
+                    $innerComment->save();
+
+                    Media::handleMedia($innerComment->id, $comment, 'facebook_innerComment');
                 }
             }
+        }
     }
 
     private function insertInnerComment($request, $messageId, $reply)
@@ -917,48 +950,105 @@ class CasesController extends Controller
         $case->save();
     }
 
-    // /**
-    //  * Handles media if sent with tweet
-    //  * @param  integer $messageId
-    //  * @param  collection $mention
-    //  * @return void
-    //  */
-    // private function handleMedia($messageId, $message, $type = null)
-    // {
-    //     $msg = Message::find($messageId);
-    //     if ($type == 'innerComment') {
-    //         $msg = InnerComment::find($messageId);
-    //     }
-    //
-    //     if ($type == 'twitter' && ! empty($message['extended_entities']) && !empty($message['extended_entities']['media'])) {
-    //         foreach ($message['extended_entities']['media'] as $key => $picture) {
-    //             $media = new Media();
-    //             $media->message_id = $messageId;
-    //             $media->url = $picture['media_url'];
-    //             $media->save();
-    //         }
-    //     } else if ($type == 'twitter' && ! empty($message['entities']) && !empty($message['entities']['media'])) {
-    //         foreach ($message['entities']['media'] as $key => $picture) {
-    //             $media = new Media();
-    //             $media->message_id = $messageId;
-    //             $media->url = $picture['media_url'];
-    //             $media->save();
-    //         }
-    //     } else if (($type == 'facebook_comment' || $type == 'facebook_innerComment') && isset($message->attachment->media->image->src)) {
-    //         $media = new Media();
-    //         if ($type == 'facebook_comment') {
-    //             $media->message_id = $messageId;
-    //         } else {
-    //             $media->inner_comment_id = $messageId;
-    //         }
-    //
-    //         $media->url = $message->attachment->media->image->src;
-    //         $media->save();
-    //     } else if ($type == 'facebook' && isset($message->full_picture)) {
-    //         $media = new Media();
-    //         $media->message_id = $messageId;
-    //         $media->url = $message->full_picture;
-    //         $media->save();
-    //     }
-    // }
+    /**
+     * Get most recent id's for Twitter & Facebook
+     * @return void
+     */
+    private function initIds()
+    {
+        $token = Configuration::FbAccessToken();
+        $client = initTwitter();
+        $fb = initFb();
+
+        $mentionId = $this->getNewestMentionId($client);
+        $directId = $this->getNewestDirectId($client);
+        $postId = $this->getNewestPostId($fb, $token);
+        $conversationId = $this->getNewestConversationId($fb, $token);
+
+        $message = new Message();
+        $message->tweet_id = $mentionId;
+        $message->direct_id = $directId;
+        $message->fb_post_id = $postId;
+        $message->fb_private_id = $conversationId;
+        $message->post_date = Carbon::now();
+        $message->save();
+
+        Log::updateLog('fetching');
+    }
+
+    /**
+     * Get newest Mention id (Twitter)
+     * @return string
+     */
+    private function getNewestMentionId($client)
+    {
+        try {
+
+            $mentions = $client->get('statuses/mentions_timeline.json?count=1');
+            return json_decode($mentions->getBody(), true)[0]['id_str'];
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+
+        }
+    }
+
+    /**
+     * Get newest Direct id (Twitter)
+     * @return string
+     */
+    private function getNewestDirectId($client)
+    {
+        try {
+
+            $directs = $client->get('direct_messages.json?count=1');
+            return json_decode($directs->getBody(), true)[0]['id_str'];
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+
+        }
+    }
+
+    /**
+     * Get newest Post id (Facebook)
+     * @return string
+     */
+    private function getNewestPostId($fb, $token)
+    {
+        try {
+
+            $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
+            return json_decode($posts->getBody())->data[0]->id;
+
+        } catch (Exception $e) {
+
+            getErrorMessage($e->getCode());
+            return back();
+
+        }
+    }
+
+    /**
+     * Get newest Conversation id (Facebook)
+     * @return string
+     */
+    private function getNewestConversationId($fb, $token)
+    {
+        try {
+
+            $privates = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/conversations?fields=id,updated_time&limit=1', $token);
+            return json_decode($privates->getBody())->data[0]->id;
+
+        } catch (Exception $e) {
+
+            getErrorMessage($e->getCode());
+            return back();
+
+        }
+    }
 }

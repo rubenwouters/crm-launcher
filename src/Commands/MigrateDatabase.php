@@ -48,7 +48,7 @@ class MigrateDatabase extends Command
     public function handle()
     {
         foreach ($this->paths as $path) {
-           $this->call('migrate', ['--path' => $path]);
-       }
+            $this->call('migrate', ['--path' => $path]);
+        }
     }
 }

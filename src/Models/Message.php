@@ -55,7 +55,6 @@ class Message extends Model
     {
         if (Message::where('fb_post_id', '!=', '')->exists()) {
             return Message::where('fb_post_id', '!=', '')
-                ->where('fb_reply_id', '')
                 ->orderBy('post_date', 'DESC')
                 ->first()->post_date;
         }

@@ -37,15 +37,15 @@ class DashboardController extends Controller
             Log::updateLog('dashboard_update');
         }
 
-        $newCases = CaseOverview::NewCases();
-        $openCases = CaseOverview::OpenCases();
-        $closedCases = CaseOverview::ClosedCases();
+        $newCases = CaseOverview::newCases();
+        $openCases = CaseOverview::openCases();
+        $closedCases = CaseOverview::closedCases();
         $avgWaitTime = $this->getAvgWaitTime();
         $avgMessages = $this->getAvgMessages();
         $avgHelpers = $this->getAvgHelpers();
         $todaysMessages = $this->getTodaysMessages();
-        $followers = Configuration::Followers();
-        $likes = Configuration::Likes();
+        $followers = Configuration::followers();
+        $likes = Configuration::likes();
 
         return view('crm-launcher::dashboard.index')
             ->with('newCases', $newCases)

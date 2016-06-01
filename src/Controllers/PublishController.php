@@ -214,7 +214,7 @@ class PublishController extends Controller
      */
     private function fetchMentions($id)
     {
-        $mentions = fetchMentions();
+        $mentions = fetchMentions('reaction');
         $publishment = Publishment::find($id);
 
         foreach ($mentions as $key => $mention) {
@@ -384,7 +384,10 @@ class PublishController extends Controller
             $page = 0;
         }
 
-        $posts = Publishment::orderBy('id', 'DESC')->where('fb_post_id', '!=', '')->skip($page)->take(5)->get();
+        $posts = Publishment::orderBy('id', 'DESC')
+            ->where('fb_post_id', '!=', '')
+            ->skip($page)
+            ->take(5)->get();
         try {
             foreach ($posts as $key => $post) {
                 $object = $fb->get('/' . $post->fb_post_id . '?fields=shares,likes.summary(true)', $token);

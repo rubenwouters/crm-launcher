@@ -51,12 +51,12 @@ if (! function_exists('initFb'))
 
     /**
      * Fetch all mentions
-     * @param  string $test [description]
+     * @param  string $type
      * @return array
      */
-    function fetchMentions()
+    function fetchMentions($type)
     {
-        $latestMentionId = LatestMentionId();
+        $latestMentionId = LatestMentionId($type);
 
         try {
             $client = initTwitter();
@@ -118,18 +118,13 @@ if (! function_exists('initFb'))
      * Gets latest mention id (Twitter).
      * @return id
      */
-    function LatestMentionId()
+    function LatestMentionId($type)
     {
-        if (Message::where('tweet_id', '!=', '')->exists() && Reaction::where('tweet_id', '!=', '')->exists()) {
-            $tweetIdMessage = Message::latestMentionId();
-            $tweetIdReaction = Reaction::latestMentionId();
-
-            return max($tweetIdMessage, $tweetIdReaction);
-        } else if (Message::where('tweet_id', '!=', '')->exists()) {
+        if ($type == 'message' && Message::where('tweet_id', '!=', '')->exists()) {
             $tweetIdMessage = Message::latestMentionId();
 
             return $tweetIdMessage;
-        } else if (Reaction::where('tweet_id', '!=', '')->exists()) {
+        } else if ($type == 'reaction' && Reaction::where('tweet_id', '!=', '')->exists()) {
             $tweetIdReaction = Reaction::latestMentionId();
 
             return $tweetIdReaction;
