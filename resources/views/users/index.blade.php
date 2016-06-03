@@ -56,7 +56,7 @@
 
 
 
-            @if(count($otherUsers) > 0 && ! empty($keywords))
+            @if(isset($otherUsers) && count($otherUsers) > 0 && ! empty($keywords))
                 <h3>Other users</h3>
                 <div class="row">
                     @foreach($otherUsers as $key => $user)

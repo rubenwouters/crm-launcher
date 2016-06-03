@@ -65,7 +65,6 @@ class Media extends Model
             } else {
                 $media->reaction_id = $messageId;
             }
-
             $media->url = $message->attachment->media->image->src;
             $media->save();
         } else if ($type == 'facebook' && isset($message->full_picture)) {

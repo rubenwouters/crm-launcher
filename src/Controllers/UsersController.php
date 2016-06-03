@@ -15,14 +15,44 @@ class UsersController extends Controller
     use ValidatesRequests;
 
     /**
-     * Returns user overview
+     * Returns team overview
      * @return view
      */
     public function index()
     {
         $team = User::where('canViewCRM', 1)->paginate(7, ['*'],'team');
-        $otherUsers = User::where('canViewCRM', 0)->paginate(4, ['*'],'users');
-        return view('crm-launcher::users.index')->with('team', $team)->with('otherUsers', $otherUsers);
+        return view('crm-launcher::users.index')->with('team', $team);
+    }
+
+    /**
+     * returns add user view
+     * @return view
+     */
+    public function addUser()
+    {
+        return view('crm-launcher::users.add');
+    }
+
+    /**
+     * Creates new team member
+     * @param Request $request
+     */
+    public function postUser(Request $request)
+    {
+        $this->validate($request, [
+            'name' => 'required',
+            'email' => 'required|unique:users',
+            'password' => 'required|min:6',
+        ]);
+
+        $user = new User();
+        $user->name = $request->input('name');
+        $user->email = $request->input('email');
+        $user->password = bcrypt($request->input('password'));
+        $user->canViewCRM = 1;
+        $user->save();
+
+        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\UsersController@index');
     }
 
     /**
@@ -43,37 +73,6 @@ class UsersController extends Controller
         }
 
         return back();
-    }
-
-    /**
-     * returns add user view
-     * @return view
-     */
-    public function addUser()
-    {
-        return view('crm-launcher::users.add');
-    }
-
-    /**
-     * Creates user
-     * @param Request $request
-     */
-    public function postUser(Request $request)
-    {
-        $this->validate($request, [
-            'name' => 'required',
-            'email' => 'required|unique:users',
-            'password' => 'required|min:6',
-        ]);
-
-        $user = new User();
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->password = bcrypt($request->input('password'));
-        $user->canViewCRM = 1;
-        $user->save();
-
-        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\UsersController@index');
     }
 
     /**
@@ -99,6 +98,9 @@ class UsersController extends Controller
                 ->orWhere('email', 'LIKE', '%' . $keywords .'%');
         })->paginate(4, ['*'],'users');
 
-        return view('crm-launcher::users.index')->with('team', $team)->with('otherUsers', $otherUsers)->with('keywords', $keywords);
+        return view('crm-launcher::users.index')
+            ->with('team', $team)
+            ->with('otherUsers', $otherUsers)
+            ->with('keywords', $keywords);
     }
 }

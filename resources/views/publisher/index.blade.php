@@ -20,18 +20,23 @@
                 {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\PublishController@publish'))) !!}
 
                     <div class="col-lg-12 media-choice">
-                        <div class="col-lg-12">
-                            {!! Form::checkbox('social[]', 'twitter', false, ['id' => 'twitter']) !!}
-                            <label class="twitter" for="twitter">
-                                <i class="fa fa-twitter" aria-hidden="true"></i> Twitter
-                            </label>
-                        </div>
-                        <div class="col-lg-12">
-                            {!! Form::checkbox('social[]', 'facebook', false, ['id' => 'facebook']) !!}
-                            <label class="facebook" for='facebook'>
-                                <i class="fa fa-facebook" aria-hidden="true"></i> Facebook
-                            </label>
-                        </div>
+                        @if (isTwitterLinked())
+                            <div class="col-lg-12">
+                                {!! Form::checkbox('social[]', 'twitter', false, ['id' => 'twitter']) !!}
+                                <label class="twitter" for="twitter">
+                                    <i class="fa fa-twitter" aria-hidden="true"></i> Twitter
+                                </label>
+                            </div>
+                        @endif
+
+                        @if (isFacebookLinked())
+                            <div class="col-lg-12">
+                                {!! Form::checkbox('social[]', 'facebook', false, ['id' => 'facebook']) !!}
+                                <label class="facebook" for='facebook'>
+                                    <i class="fa fa-facebook" aria-hidden="true"></i> Facebook
+                                </label>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="col-lg-12 summary-textarea static-parent">

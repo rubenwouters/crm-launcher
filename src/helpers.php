@@ -50,6 +50,98 @@ if (! function_exists('initFb'))
     }
 
     /**
+     * Check if configurations are set
+     * @return boolean
+     */
+    function hasFbPermissions()
+    {
+        return Configuration::exists() && Configuration::first()->facebook_access_token;
+    }
+
+    function validTwitterSettings()
+    {
+        if (Configuration::exists() && Configuration::first()->linked_twitter) {
+            return true;
+        }
+
+        try {
+            $client = initTwitter();
+            $verification = $client->get('account/verify_credentials.json');
+            $verification = json_decode($verification->getBody(), true);
+
+            if (Configuration::exists() && Configuration::first()->exists()) {
+                Configuration::insertTwitterId($verification);
+            }
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            if ($e->getCode() == 429) {
+                getErrorMessage($e->getResponse()->getStatusCode());
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function isConfigured()
+    {
+        if (Configuration::exists() && Configuration::first()->valid_credentials) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function isTwitterLinked()
+    {
+        if (Configuration::exists()) {
+            return Configuration::first()->linked_twitter;
+        }
+
+        return false;
+    }
+
+    function isFacebookLinked()
+    {
+        if (Configuration::exists()) {
+            return Configuration::first()->linked_facebook;
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if .ENV file is filled out with Twitter credentials
+     * @return boolean
+     */
+    function isTwitterEnvFilledOut()
+    {
+        if (! config('crm-launcher.twitter_credentials.twitter_consumer_key') ||
+            ! config('crm-launcher.twitter_credentials.twitter_consumer_secret') ||
+            ! config('crm-launcher.twitter_credentials.twitter_access_token') ||
+            ! config('crm-launcher.twitter_credentials.twitter_access_token_secret')
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Checks if .ENV file is filled out with FB credentials
+     * @return boolean
+     */
+    function isFbEnvFilledOut()
+    {
+        if (! config('crm-launcher.facebook_credentials.facebook_app_id') ||
+            ! config('crm-launcher.facebook_credentials.facebook_app_secret') ||
+            ! config('crm-launcher.facebook_credentials.facebook_page_id')
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Fetch all mentions
      * @param  string $type
      * @return array
@@ -140,7 +232,7 @@ if (! function_exists('initFb'))
     {
         if (Message::where('fb_reply_id', '!=', '')->exists() && Reaction::where('fb_post_id', '!=', '')->exists()) {
             $messageDate =  Message::where('fb_reply_id', '!=', '')
-                ->orderBy('fb_post_id', 'DESC')
+                ->orderBy('fb_post_id', 'ASC')
                 ->first()->post_date;
 
             $reactionDate =  Reaction::where('fb_post_id', '!=', '')
@@ -152,7 +244,7 @@ if (! function_exists('initFb'))
         } else if (Message::where('fb_reply_id', '!=', '')->exists()) {
 
             return Message::where('fb_reply_id', '!=', '')
-                ->orderBy('fb_post_id', 'DESC')
+                ->orderBy('fb_post_id', 'ASC')
                 ->first()->post_date;
 
         } else if (Reaction::where('fb_post_id', '!=', '')->exists()) {

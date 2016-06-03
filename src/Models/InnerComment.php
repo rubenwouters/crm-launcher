@@ -42,8 +42,8 @@ class InnerComment extends Model
 
     public function scopeLatestInnerCommentDate($query)
     {
-        if ($query->exists()) {
-            return $query->orderBy('id', 'DESC')->first()->post_date;
+        if ($query->where('reaction_id', '0')->exists()) {
+            return $query->orderBy('id', 'DESC')->where('reaction_id', '0')->first()->post_date;
         }
 
         return Carbon::today();

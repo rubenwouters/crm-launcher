@@ -50,7 +50,7 @@ class SummaryController extends Controller
     }
 
     /**
-     * Mark case as "open"
+     * Mark case as "open" (after your first summary is added)
      * @param  integer $caseId
      * @return void
      */

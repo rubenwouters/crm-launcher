@@ -6,12 +6,12 @@ use Illuminate\Routing\Controller;
 use Auth;
 use Socialite;
 use Carbon\Carbon;
+use \Exception;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\Models\Message;
 use Rubenwouters\CrmLauncher\Models\Log;
 use Rubenwouters\CrmLauncher\Models\Answer;
-use \Exception;
 
 class DashboardController extends Controller
 {
@@ -21,19 +21,22 @@ class DashboardController extends Controller
     */
     public function index()
     {
-        $filledOut = $this->isEnvFilledOut();
-
-        if (! $filledOut) {
-            return view('crm-launcher::dashboard.permissions')->with('filledOut', $filledOut);
+        if (! Configuration::exists() || ! Configuration::first()->valid_credentials) {
+            return view('crm-launcher::dashboard.facebook');
         }
 
-        if (! Configuration::count() || Configuration::count() == 1 && Configuration::FbAccessToken() == "") {
-            return view('crm-launcher::dashboard.permissions')->with('filledOut', $filledOut);
-        }
+        $config = Configuration::first();
 
-        if ($this->validTwitterSettings() && ($this->lastUpdate() > 900 || !$this->lastUpdate())) {
-            $this->fetchFollowers();
-            $this->fetchLikes();
+        if ($config->valid_credentials && ($this->lastUpdate() > 900 || !$this->lastUpdate())) {
+
+            if (isFacebookLinked()) {
+                $this->fetchLikes();
+            }
+
+            if (isTwitterLinked()) {
+                $this->fetchFollowers();
+            }
+
             Log::updateLog('dashboard_update');
         }
 
@@ -56,21 +59,20 @@ class DashboardController extends Controller
             ->with('avgHelpers', $avgHelpers)
             ->with('todaysMessages', $todaysMessages)
             ->with('followers', $followers)
-            ->with('likes', $likes)
-            ->with('filledOut', $filledOut);
+            ->with('likes', $likes);
     }
 
     /**
      * Ask permission on Facebook account.
+     * @return view
      */
     public function askFbPermissions()
     {
         return Socialite::with('facebook')->scopes(['publish_pages', 'manage_pages', 'read_page_mailboxes'])->redirect();
-
     }
 
     /**
-     * Handles logged in user and takes access token of the user.
+     * Handles redirect by Facebook after login. Inserts Facebook page Access token
      * @return view
      */
     public function fbCallback()
@@ -79,62 +81,37 @@ class DashboardController extends Controller
             $fbUser = Socialite::with('facebook')->user();
             $token = $fbUser->token;
             $pageAccessToken = $this->getPageAccessToken($token);
+
             if ($pageAccessToken) {
                 $this->insertFbToken($pageAccessToken);
             }
+
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             getErrorMessage($e->getResponse()->getStatusCode());
         }
 
-        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
+        return redirect('/crm/dashboard');
     }
 
     /**
-     * Checks if .ENV file is filled out
-     * @return boolean
+     * Updates config record to a valid state after checks
+     * @return view
      */
-    private function isEnvFilledOut()
+    public function launch()
     {
-        if (! config('crm-launcher.twitter_credentials.twitter_consumer_key') ||
-            ! config('crm-launcher.twitter_credentials.twitter_consumer_secret') ||
-            ! config('crm-launcher.twitter_credentials.twitter_access_token') ||
-            ! config('crm-launcher.twitter_credentials.twitter_access_token_secret') ||
-            ! config('crm-launcher.facebook_credentials.facebook_app_id') ||
-            ! config('crm-launcher.facebook_credentials.facebook_app_secret') ||
-            ! config('crm-launcher.facebook_credentials.facebook_page_id')
-        ) {
-            return false;
+        if (! Configuration::exists()) {
+            $config = new Configuration();
+            $config->save();
+
+            validTwitterSettings();
+        } else {
+            $config = Configuration::first();
         }
 
-        $this->validTwitterSettings();
-        return true;
-    }
+        $config->valid_credentials = 1;
+        $config->save();
 
-    private function validTwitterSettings()
-    {
-        try {
-            $client = initTwitter();
-            $verification = $client->get('account/verify_credentials.json');
-            $verification = json_decode($verification->getBody(), true);
-
-            if (Configuration::exists() && Configuration::first()->exists()) {
-                $this->insertTwitterId($verification);
-            }
-
-            return true;
-
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-
-            if ($e->getCode() == 429) {
-                getErrorMessage($e->getResponse()->getStatusCode());
-            } else {
-                getErrorMessage('bad_auth');
-            }
-
-            return false;
-        }
-
-        return true;
+        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
     }
 
     /**
@@ -170,12 +147,14 @@ class DashboardController extends Controller
             $config = Configuration::find(1);
         }
 
+        $config->linked_facebook = 1;
         $config->facebook_access_token = $token;
         $config->save();
     }
 
+
     /**
-     * Get average wait time
+     * Gets average wait time
      * @return integer
      */
     private function getAvgWaitTime()
@@ -186,14 +165,17 @@ class DashboardController extends Controller
         foreach ($cases as $key => $case) {
             foreach ($case->messages as $id => $message) {
                 if ($message->answers()->exists()) {
+
                     $postDate = new Carbon($message->post_date);
                     $answerDate = new Carbon($message->answers()->first()->post_date);
                     $waitTime = $answerDate->diffInSeconds($postDate);
                     array_push($arTime, $waitTime);
+
                 }
             }
         }
-        if(count($arTime) != 0){
+
+        if (count($arTime) != 0) {
             return round(array_sum($arTime)/count($arTime)/60);
         }
 
@@ -201,7 +183,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get average messages per case
+     * Gets average messages per case
      * @return integer
      */
     private function getAvgMessages()
@@ -223,7 +205,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get average helpers per case
+     * Gets average helpers per case
      * @return integer
      */
     private function getAvgHelpers()
@@ -243,7 +225,7 @@ class DashboardController extends Controller
     }
 
     /**
-     * Get number answers sent today
+     * Gets number answers sent today
      * @return integer
      */
     private function getTodaysMessages()
@@ -262,6 +244,7 @@ class DashboardController extends Controller
             $pageId = Configuration::TwitterId();
             $lookup = $client->get('users/show/followers_count.json?user_id=' . $pageId);
             $lookup = json_decode($lookup->getBody(), true);
+
             $this->updateStats('twitter', $lookup['followers_count']);
 
             return $lookup['followers_count'];
@@ -285,9 +268,11 @@ class DashboardController extends Controller
             $count = json_decode($count->getBody(), true);
 
             $this->updateStats('facebook', $count['fan_count']);
+
             return $count['fan_count'];
 
         } catch (Exception $e) {
+
             getErrorMessage($e->getCode());
             return back();
         }
@@ -302,32 +287,25 @@ class DashboardController extends Controller
     private function updateStats($type, $nr)
     {
         if ($type == 'twitter') {
+
             $config = Configuration::first();
             $config->twitter_followers = $nr;
             $config->save();
+
         } else if ($type == 'facebook') {
+
             $config = Configuration::first();
             $config->facebook_likes = $nr;
             $config->save();
+
         }
     }
 
-    /**
-     * Inserts Twitter id & screen name in configuration table
-     * @param  collection $verification
-     * @return void
-     */
-    private function insertTwitterId($verification)
-    {
-        $config = Configuration::first();
-        $config->twitter_screen_name = $verification['screen_name'];
-        $config->twitter_id = $verification['id_str'];
-        $config->save();
-    }
 
     private function lastUpdate()
     {
         if (Log::DashboardUpdate()->exists()) {
+
             $lastUpdate = Log::DashboardUpdate()->orderBy('id', 'DESC')->first()->created_at;
             $now = Carbon::now();
             $last = new Carbon($lastUpdate);

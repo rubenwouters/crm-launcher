@@ -19,6 +19,9 @@ class CreateConfigurationsTable extends Migration
             $table->string('facebook_access_token');
             $table->integer('facebook_likes');
             $table->integer('twitter_followers');
+            $table->integer('valid_credentials');
+            $table->integer('linked_facebook');
+            $table->integer('linked_twitter');
             $table->timestamps();
         });
     }

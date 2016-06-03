@@ -4,6 +4,11 @@ namespace Rubenwouters\CrmLauncher\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
+use DateTime;
+use Auth;
+use Session;
+use \Exception;
 use Rubenwouters\CrmLauncher\Models\Contact;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
@@ -14,11 +19,7 @@ use Rubenwouters\CrmLauncher\Models\InnerAnswer;
 use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\Models\Media;
 use Rubenwouters\CrmLauncher\Models\Log;
-use Carbon\Carbon;
-use DateTime;
-use Auth;
-use Session;
-use \Exception;
+
 
 class CasesController extends Controller
 {
@@ -41,10 +42,16 @@ class CasesController extends Controller
         }
 
         if ($secondsAgo > 60) {
-            $this->collectPrivateMessages();
-            $this->collectMentions();
-            $this->collectDirectMessages();
-            $this->collectPosts();
+
+            if (isFacebookLinked()) {
+                $this->collectPrivateMessages();
+                $this->collectPosts();
+            }
+
+            if (isTwitterLinked()) {
+                $this->collectMentions();
+                $this->collectDirectMessages();
+            }
 
             Log::updateLog('fetching');
         }
@@ -162,8 +169,16 @@ class CasesController extends Controller
         $case->latest_helper = Auth::user()->name;
         $case->save();
 
+        // $caseContact = $case->contact->id;
+        // $message = $case->messages->sortByDesc('id')->where('contact_id', $caseContact)->first();
         $message = $case->messages->sortByDesc('id')->first();
-        $tweetId = $message->tweet_id;
+
+        if (isset($message->tweet_id)) {
+            $tweetId = $message->tweet_id;
+        } else {
+            getErrorMessage("100");
+            return back();
+        }
 
         if ($request->input('in_reply_to', '!=', '')) {
             $tweetId = $request->input('in_reply_to');
@@ -251,6 +266,7 @@ class CasesController extends Controller
 
             Session::flash('flash_success', trans('crm-launcher::success.message_sent'));
         } catch (Exception $e) {
+            dd($e);
             getErrorMessage($e->getCode());
             return back();
         }
@@ -377,9 +393,10 @@ class CasesController extends Controller
      */
     private function collectMentions()
     {
-        $mentions = fetchMentions('message');
+        $mentions = array_reverse(fetchMentions('message'));
 
         foreach ($mentions as $key => $mention) {
+
             $date = changeDateFormat($mention['created_at']);
             $inReplyTo = $mention['in_reply_to_status_id_str'];
             $message = new Message();
@@ -409,6 +426,7 @@ class CasesController extends Controller
                 $message->case_id = $case->id;
             }
 
+            $message->contact_id = $contact->id;
             $message->tweet_id = $mention['id_str'];
             $message->message = $mention['text'];
             $message->post_date = $date;
@@ -434,7 +452,12 @@ class CasesController extends Controller
 
             if (Contact::where('twitter_id', $direct['sender']['id_str'])->exists()) {
                 $contact = Contact::where('twitter_id', $direct['sender']['id_str'])->first();
-                $case = $contact->cases()->where('origin', 'Twitter direct')->orderBy('id', 'DESC')->first();
+                if (count($contact->cases)) {
+                    $case = $contact->cases()->where('origin', 'Twitter direct')->orderBy('id', 'DESC')->first();
+                } else {
+                    $case = $this->createCase('twitter_direct', $direct, $contact);
+                }
+
                 $message->case_id = $case->id;
                 $this->reopenCase($case);
             } else {
@@ -443,6 +466,7 @@ class CasesController extends Controller
                 $message->case_id = $case->id;
             }
 
+            $message->contact_id = $contact->id;
             $message->direct_id = $direct['id_str'];
             $message->message = $direct['text'];
             $message->post_date = $date;
@@ -471,19 +495,6 @@ class CasesController extends Controller
             return back();
         }
     }
-
-    // /**
-    //  * Gets latest mention id (Twitter).
-    //  * @return id
-    //  */
-    // private function LatestMentionId()
-    // {
-    //     if (Message::where('tweet_id', '!=', '')->exists()) {
-    //         $tweetId = Message::LatestMentionId();
-    //         return $tweetId;
-    //     }
-    //     return false;
-    // }
 
     /**
      * Get latest direct message ID
@@ -597,6 +608,7 @@ class CasesController extends Controller
                         $message->save();
 
                         $this->updateCase($case->id, 'facebook', $conversation->id);
+                        Media::handleMedia($message->id, $result, 'facebook_comment');
                     }
                 }
             }
@@ -681,8 +693,9 @@ class CasesController extends Controller
                         if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
                             && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
                         ) {
+
                             if (! Contact::FindByFbId($comment->from->id)->exists()) {
-                                $contact = $this->createContact('facebook_post', $comment);
+                                $contact = $this->createContact('facebook', $comment);
                             } else {
                                 $contact = Contact::FindByFbId($comment->from->id)->first();
                             }
@@ -712,7 +725,6 @@ class CasesController extends Controller
      */
     private function fetchInnerComments($newest)
     {
-
         $messages = Message::where('fb_post_id', '!=', '')->get();
         $answers = Answer::where('fb_post_id', '!=', '')->get();
 
@@ -722,12 +734,16 @@ class CasesController extends Controller
 
             $comments = fetchInnerComments($newest, $message['fb_post_id']);
 
+            if($comments == null) {
+                continue;
+            }
+
             foreach ($comments->data as $key => $comment) {
                 if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
                     && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
                 ) {
                     if (! Contact::FindByFbId($comment->from->id)->exists()) {
-                        $contact = $this->createContact('facebook_post', $comment);
+                        $contact = $this->createContact('facebook', $comment);
                     } else {
                         $contact = Contact::FindByFbId($comment->from->id)->first();
                     }
@@ -958,20 +974,29 @@ class CasesController extends Controller
      */
     private function initIds()
     {
-        $token = Configuration::FbAccessToken();
-        $client = initTwitter();
-        $fb = initFb();
-
-        $mentionId = $this->getNewestMentionId($client);
-        $directId = $this->getNewestDirectId($client);
-        $postId = $this->getNewestPostId($fb, $token);
-        $conversationId = $this->getNewestConversationId($fb, $token);
-
         $message = new Message();
-        $message->tweet_id = $mentionId;
-        $message->direct_id = $directId;
-        $message->fb_post_id = $postId;
-        $message->fb_private_id = $conversationId;
+
+        if (isTwitterLinked()) {
+
+            $client = initTwitter();
+            $mentionId = $this->getNewestMentionId($client);
+            $directId = $this->getNewestDirectId($client);
+
+            $message->tweet_id = $mentionId;
+            $message->direct_id = $directId;
+        }
+
+        if (isFacebookLinked()) {
+
+            $fb = initFb();
+            $token = Configuration::FbAccessToken();
+            $postId = $this->getNewestPostId($fb, $token);
+            $conversationId = $this->getNewestConversationId($fb, $token);
+
+            $message->fb_post_id = $postId;
+            $message->fb_private_id = $conversationId;
+        }
+
         $message->post_date = Carbon::now();
         $message->save();
 

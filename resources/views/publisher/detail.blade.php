@@ -40,9 +40,9 @@
 
 
         <div class="row">
-            <div class="col-md-6 conversation">
+            <div class="@if(isTwitterLinked() && ! isFacebookLinked()) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation">
                 @if(count($tweets) > 0)
-                    @foreach($tweets as $key => $message)
+                    @foreach($tweets->sortBy('post_date') as $key => $message)
 
                         <div class="message">
                             <div class="col-xs-12 col-md-12 bubble @if($message->user_id == 0) answer @endif">
@@ -89,7 +89,8 @@
                     {!! Form::close() !!}
                 @endif
             </div>
-            <div class="col-md-6 conversation">
+
+            <div class="@if(! isTwitterLinked() && isFacebookLinked()) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation">
                 @if(count($posts) > 0)
                     @foreach($posts as $key => $post)
                         <div class="message">
@@ -128,7 +129,7 @@
                                         @foreach($comment->media as $nr => $pic)
                                             <div class="reply-inner">
                                                 <span class="post-date">{{ date(' d/m/Y, H:i', strtotime($comment->post_date)) }}</span>
-                                            </div> 
+                                            </div>
                                             <div class="media-item">
                                                 {{ $comment->message }}
                                                 <a class="gallery" href="#" data-featherlight="{{$pic->url}}">

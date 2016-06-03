@@ -18,4 +18,18 @@ class Configuration extends Model
     {
         return $query->first()->twitter_id;
     }
+
+    /**
+     * Inserts Twitter id & screen name in configuration table
+     * @param  collection $verification
+     * @return void
+     */
+    public static function insertTwitterId($verification)
+    {
+        $config = Configuration::first();
+        $config->twitter_screen_name = $verification['screen_name'];
+        $config->twitter_id = $verification['id_str'];
+        $config->linked_twitter = 1;
+        $config->save();
+    }
 }

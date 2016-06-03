@@ -36,15 +36,20 @@ class PublishController extends Controller
 
         $secondsAgo = Log::secondsAgo('publishments');
         if (! $secondsAgo || $secondsAgo > 30) {
-            $tweets = $this->fetchTwitterStats($page);
-            $this->updateTwitterStats($tweets);
-            $posts = $this->fetchFbStats($page);
+
+            if (isTwitterLinked()) {
+                $tweets = $this->fetchTwitterStats($page);
+                $this->updateTwitterStats($tweets);
+            }
+
+            if (isFacebookLinked()) {
+                $posts = $this->fetchFbStats($page);
+            }
 
             Log::updateLog('publishments');
         }
 
         $publishments = Publishment::orderBy('id', 'DESC')->paginate(5);
-
         return view('crm-launcher::publisher.index')->with('publishments', $publishments);
     }
 
@@ -59,10 +64,17 @@ class PublishController extends Controller
         $secondsAgo = Log::secondsAgo('publishment_detail');
 
         if (! $secondsAgo || $secondsAgo > 60) {
+
+            if (isTwitterLinked()) {
+                $this->fetchMentions($id);
+            }
+
+            if (isFacebookLinked()) {
+                $this->fetchPosts($id);
+                $this->fetchInnerComments($id);
+            }
+
             Log::updateLog('publishment_detail');
-            $this->fetchMentions($id);
-            $this->fetchPosts($id);
-            $this->fetchInnerComments($id);
         }
 
         $tweets = $publishment->reactions()->where('tweet_id', '!=', '')->get();
@@ -203,6 +215,7 @@ class PublishController extends Controller
             $this->insertPublishment('twitter', $publishment, $tweet);
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
+            dd($e);
             getErrorMessage($e->getResponse()->getStatusCode());
             return back();
         }
