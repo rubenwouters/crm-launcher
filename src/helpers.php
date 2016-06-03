@@ -167,6 +167,81 @@ if (! function_exists('initFb'))
     }
 
     /**
+     * Fetch all direct (private) messages
+     * @param  integer $since_id
+     * @return view
+     */
+    function fetchDirectMessages($sinceId)
+    {
+        $client = initTwitter();
+
+        try {
+            if ($sinceId != 0) {
+                $response = $client->get('direct_messages.json?since_id=' . $sinceId);
+            } else {
+                $response = $client->get('direct_messages.json?count=1');
+            }
+
+            return json_decode($response->getBody(), true);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+        }
+    }
+
+
+    function fetchPosts($newest)
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            if($newest) {
+                $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&since=' . strtotime($newest), $token);
+            } else {
+                $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
+            }
+            return json_decode($posts->getBody());
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    /**
+     * Fetches all private conversations from Facebook
+     * @param  datetime $newest
+     * @return array
+     */
+    function fetchPrivateConversations()
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/conversations?fields=id,updated_time', $token);
+            return json_decode($posts->getBody());
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    function fetchPrivateMessages($conversation)
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $message = $fb->get('/' . $conversation->id . '/messages?fields=from,message,created_time', $token);
+            return json_decode($message->getBody());
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    /**
      * Fetch comments on post
      * @return array
      */
@@ -207,6 +282,27 @@ if (! function_exists('initFb'))
     }
 
     /**
+     * Get profile picture of user on Facebook
+     * @param  integer $id
+     * @return view
+     */
+    function getProfilePicture($id)
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $picture = $fb->get('/' . $id . '/picture?redirect=false&type=large', $token);
+            $picture = json_decode($picture->getBody());
+            return $picture->data->url;
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+
+    /**
      * Gets latest mention id (Twitter).
      * @return id
      */
@@ -222,6 +318,82 @@ if (! function_exists('initFb'))
             return $tweetIdReaction;
         }
         return false;
+    }
+
+    function newestMentionId()
+    {
+        $client = initTwitter();
+
+        try {
+            $mentions = $client->get('statuses/mentions_timeline.json?count=1');
+            return json_decode($mentions->getBody(), true)[0]['id_str'];
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+
+        }
+    }
+
+    function newestDirectId()
+    {
+        $client = initTwitter();
+
+        try {
+            $directs = $client->get('direct_messages.json?count=1');
+            return json_decode($directs->getBody(), true)[0]['id_str'];
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+
+        }
+    }
+
+    function newestPostId()
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
+            return json_decode($posts->getBody())->data[0]->id;
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+
+    function newestConversationId()
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $privates = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/conversations?fields=id,updated_time&limit=1', $token);
+            return json_decode($privates->getBody())->data[0]->id;
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    /**
+     * Get latest direct message ID
+     * @return integer
+     */
+    function latestDirect()
+    {
+        $tweet_id = 0;
+
+        if (Message::where('direct_id', '!=', '')->exists()) {
+            $tweet_id = Message::LatestDirectId();
+        }
+
+        return $tweet_id;
     }
 
     /**
@@ -297,6 +469,82 @@ if (! function_exists('initFb'))
             return json_decode($reply->getBody());
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    function answerPrivate($conversation, $answer)
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $reply = $fb->post('/' . $conversation->fb_conversation_id . '/messages?message=' . rawurlencode($answer) , array('access_token' => $token));
+            $reply = json_decode($reply->getBody());
+            Session::flash('flash_success', trans('crm-launcher::success.message_sent'));
+
+            return $reply;
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    function deleteTweet($case, $answer)
+    {
+        $client = initTwitter();
+
+        try {
+            if ($case->origin == 'Twitter mention') {
+                $client->post('statuses/destroy/' . $answer->tweet_id . '.json');
+            } else if ($case->origin == 'Twitter direct') {
+                $client->post('direct_messages/destroy.json?id=' . $answer->tweet_id);
+            }
+            Session::flash('flash_success', trans('crm-launcher::success.tweet_deleted'));
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+        }
+    }
+
+    /**
+     * Deletes post
+     * @param  collection $post
+     * @return view
+     */
+    function deleteFbPost($post)
+    {
+        $token = Configuration::FbAccessToken();
+        $fb = initFb();
+
+        try {
+            $fb->delete('/' . $post->fb_post_id, ['access_token' => $token]);
+            Session::flash('flash_success', trans('crm-launcher::success.post_deleted'));
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
+    function toggleFollowUser($contact, $twitterId)
+    {
+        $client = initTwitter();
+
+        try {
+            if ($contact->following) {
+                $contact->following = 0;
+                $client->post('friendships/destroy.json?follow=true&user_id=' . $twitterId);
+                Session::flash('flash_success', trans('crm-launcher::success.unfollow'));
+            } else {
+                $contact->following = 1;
+                $client->post('friendships/create.json?follow=true&user_id=' . $twitterId);
+                Session::flash('flash_success', trans('crm-launcher::success.follow'));
+            }
+
+            $contact->save();
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
             return back();
         }
     }
