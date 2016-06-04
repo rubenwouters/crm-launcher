@@ -40,7 +40,7 @@ class Message extends Model
     }
 
 
-    public function scopeLatestMentionId($query)
+    public function scopelatestMentionId($query)
     {
         return $query->orderBy('tweet_id', 'DESC')->first()->tweet_id;
     }

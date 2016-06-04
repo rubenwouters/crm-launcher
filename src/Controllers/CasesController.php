@@ -286,18 +286,15 @@ class CasesController extends Controller
 
         if (isTwitterLinked()) {
 
-            $client = initTwitter();
-            $mentionId = newestMentionId($client);
-            $directId = newestDirectId($client);
+            $mentionId = newestMentionId();
+            $directId = newestDirectId();
 
             $message->tweet_id = $mentionId;
             $message->direct_id = $directId;
         }
 
         if (isFacebookLinked()) {
-
-            $fb = initFb();
-            $token = Configuration::FbAccessToken();
+            
             $postId = newestPostId();
             $conversationId = newestConversationId();
 
