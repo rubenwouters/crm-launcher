@@ -28,24 +28,11 @@ class PublishController extends Controller
      */
     public function index()
     {
-        if (isset($_GET['page'])) {
-            $page = $_GET['page'];
-        } else {
-            $page = 1;
-        }
-
+        $page = $this->checkPage();
         $secondsAgo = Log::secondsAgo('publishments');
+
         if (! $secondsAgo || $secondsAgo > 30) {
-
-            if (isTwitterLinked()) {
-                $tweets = $this->fetchTwitterStats($page);
-                $this->updateTwitterStats($tweets);
-            }
-
-            if (isFacebookLinked()) {
-                $posts = $this->fetchFbStats($page);
-            }
-
+            $this->updateStats($page);
             Log::updateLog('publishments');
         }
 
@@ -64,16 +51,7 @@ class PublishController extends Controller
         $secondsAgo = Log::secondsAgo('publishment_detail');
 
         if (! $secondsAgo || $secondsAgo > 60) {
-
-            if (isTwitterLinked()) {
-                $this->fetchMentions($id);
-            }
-
-            if (isFacebookLinked()) {
-                $this->fetchPosts($id);
-                $this->fetchInnerComments($id);
-            }
-
+            $this->fetchReactions($id);
             Log::updateLog('publishment_detail');
         }
 
@@ -87,7 +65,7 @@ class PublishController extends Controller
     }
 
     /**
-     * Reply tweet
+     * Reply tweet (Twitter)
      * @param  Request $request
      * @param  integer  $id
      * @return view
@@ -104,9 +82,16 @@ class PublishController extends Controller
 
         $reply = answerTweet($request, 'public', $replyTo, null);
         $this->insertReaction('twitter', $reply, $id);
+
         return back();
     }
 
+    /**
+     * Reply post (Facebook)
+     * @param  Request $request
+     * @param  integer  $id
+     * @return view
+     */
     public function replyPost(Request $request, $id)
     {
         $publishment = Publishment::find($id);
@@ -121,10 +106,95 @@ class PublishController extends Controller
             $this->insertReaction('facebook', $reply, $id, $request->input('answer'));
         }
 
+        return back();
+    }
+
+    /**
+     * Publish Tweet and/or Facebook post
+     * @param  Request $request
+     * @return view
+     */
+    public function publish(Request $request)
+    {
+        $this->validate($request, [
+            'content' => 'required',
+            'social' => 'required',
+        ]);
+
+        $content = rawurlencode($request->input('content'));
+
+        if (in_array('twitter', $request->input('social'))) {
+            $publishment = publishTweet($content);
+            $this->insertPublishment('twitter', $publishment, $content);
+        }
+
+        if (in_array('facebook', $request->input('social'))) {
+            $publishment = publishPost($content);
+            $this->insertPublishment('facebook', $publishment, $content);
+        }
 
         return back();
     }
 
+
+
+    /**
+     * Checks current page you're on to decrease loading time
+     * @return integer
+     */
+    private function checkPage()
+    {
+        if (isset($_GET['page'])) {
+            $page = $_GET['page'];
+        } else {
+            $page = 1;
+        }
+
+        return $page;
+    }
+
+    /**
+     * Update Twitter followers & Facebook likes stats
+     * @param  integer $page
+     * @return void
+     */
+    private function updateStats($page)
+    {
+        if (isTwitterLinked()) {
+            $tweets = $this->fetchTwitterStats($page);
+            $this->updateTwitterStats($tweets);
+        }
+
+        if (isFacebookLinked()) {
+            $this->fetchFbStats($page);
+        }
+    }
+
+    /**
+     * Fetch reactions on publishment from Facebook and Twitter
+     * @param  integer $id
+     * @return void
+     */
+    private function fetchReactions($id)
+    {
+        if (isTwitterLinked()) {
+            $this->fetchMentions($id);
+        }
+
+        if (isFacebookLinked()) {
+            $this->fetchPosts($id);
+            $this->fetchInnerComments($id);
+        }
+    }
+
+    /**
+     * Insert inner comment in DB
+     * @param  integer $id
+     * @param  Request $request
+     * @param  id $messageId
+     * @param  object $reply
+     * @return void
+     */
     private function insertInnerComment($id, $request, $messageId, $reply)
     {
         $innerComment = new InnerComment();
@@ -141,6 +211,14 @@ class PublishController extends Controller
         $innerComment->save();
     }
 
+    /**
+     * Insert reaction in DB (eiter from a Facebook post or Tweet)
+     * @param  string $type
+     * @param  object $mention
+     * @param  integer $id
+     * @param  string $answer
+     * @return object
+     */
     private function insertReaction($type, $mention, $id, $answer = null)
     {
         $reaction = new Reaction();
@@ -160,6 +238,7 @@ class PublishController extends Controller
             $reaction->tweet_reply_id = $mention['in_reply_to_status_id_str'];
             $reaction->message = $mention['text'];
             $reaction->post_date = changeDateFormat($mention['created_at']);
+
         } else {
             $reaction->fb_post_id = $mention->id;
 
@@ -171,54 +250,9 @@ class PublishController extends Controller
                 $reaction->post_date = Carbon::now();
             }
         }
-
         $reaction->save();
+
         return $reaction;
-    }
-
-    /**
-     * Publish Tweet and/or Facebook post
-     * @param  Request $request
-     * @return view
-     */
-    public function publish(Request $request)
-    {
-        $this->validate($request, [
-            'content' => 'required',
-            'social' => 'required',
-        ]);
-
-        if (in_array('twitter', $request->input('social'))) {
-            $this->publishTweet($request);
-        }
-
-        if (in_array('facebook', $request->input('social'))) {
-            $this->publishPost($request);
-        }
-
-        return back();
-    }
-
-    /**
-     * Publish tweet
-     * @param  Request $request
-     * @return view
-     */
-    private function publishTweet($request)
-    {
-        $client = initTwitter();
-        $tweet = rawurlencode($request->input('content'));
-
-        try {
-            $publishment = $client->post('statuses/update.json?status=' . $tweet);
-            $publishment = json_decode($publishment->getBody(), true);
-            $this->insertPublishment('twitter', $publishment, $tweet);
-
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            dd($e);
-            getErrorMessage($e->getResponse()->getStatusCode());
-            return back();
-        }
     }
 
     /**
@@ -231,7 +265,9 @@ class PublishController extends Controller
         $publishment = Publishment::find($id);
 
         foreach ($mentions as $key => $mention) {
-            if ($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || Reaction::where('tweet_id', $mention['in_reply_to_status_id_str'])->exists()) {
+            if (($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || Reaction::where('tweet_id', $mention['in_reply_to_status_id_str'])
+                && $publishment->tweet_id != null)->exists()
+            ) {
                 $reaction = $this->insertReaction('twitter', $mention, $id);
                 Media::handleMedia($reaction->id, $mention, 'twitter_reaction');
             }
@@ -263,6 +299,11 @@ class PublishController extends Controller
         }
     }
 
+    /**
+     * Fetch inner comments from Facebook
+     * @param  integer $id
+     * @return void
+     */
     private function fetchInnerComments($id)
     {
         $reactions = Publishment::find($id)->reactions()->where('fb_post_id', '!=', '')->get();
@@ -288,28 +329,6 @@ class PublishController extends Controller
                     Media::handleMedia($innerComment->id, $comment, 'facebook_innerComment');
                 }
             }
-        }
-    }
-
-    /**
-     * Publish post
-     * @param  Request $request
-     * @return view
-     */
-    private function publishPost($request)
-    {
-        $fb = initFb();
-        $token = Configuration::FbAccessToken();
-        $post = rawurlencode($request->input('content'));
-
-        try {
-            $publishment = $fb->post('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/feed?&message=' . $post, ['access_token' => $token]);
-            $publishment = json_decode($publishment->getBody());
-            $this->insertPublishment('facebook', $publishment, $post);
-
-        } catch (Exception $e) {
-            getErrorMessage($e->getCode());
-            return back();
         }
     }
 
@@ -342,19 +361,18 @@ class PublishController extends Controller
 
     /**
      * Fetch user's tweets
+     * @param  integer $page
      * @return array
      */
     private function fetchTwitterStats($page)
     {
         $client = initTwitter();
+        $maxId = 0;
         $twitterId = Configuration::twitterId();
-
-        $page = (5 * $page) - 5;
+        $page = $this->calculateSkipCount($page);
 
         if(Publishment::exists()) {
             $maxId = Publishment::orderBy('id', 'DESC')->skip($page)->first()->tweet_id;
-        } else {
-            $maxId = 0;
         }
 
         try {
@@ -375,28 +393,26 @@ class PublishController extends Controller
     {
         foreach ($tweets as $key => $tweet) {
             if (Publishment::where('tweet_id', $tweet['id_str'])->exists()) {
+
                 $publishment = Publishment::where('tweet_id', $tweet['id_str'])->first();
                 $publishment->twitter_likes = $tweet['favorite_count'];
                 $publishment->twitter_retweets = $tweet['retweet_count'];
                 $publishment->save();
+
             }
         }
     }
 
     /**
      * Fetch Facebook posts
+     * @param  integer $page
      * @return array
      */
     private function fetchFbStats($page)
     {
         $fb = initFb();
         $token = Configuration::FbAccessToken();
-
-        if ($page) {
-            $page = (5 * $page) - 5;
-        } else {
-            $page = 0;
-        }
+        $page = $this->calculateSkipCount($page);
 
         $posts = Publishment::orderBy('id', 'DESC')
             ->where('fb_post_id', '!=', '')
@@ -427,5 +443,15 @@ class PublishController extends Controller
         }
         $post->facebook_likes = $object->likes->summary->total_count;
         $post->save();
+    }
+
+    /**
+     * Calculate the amount of publishments to skip
+     * @param  integer $page
+     * @return integer
+     */
+    private function calculateSkipCount($page)
+    {
+        return ((5 * $page) - 5);
     }
 }

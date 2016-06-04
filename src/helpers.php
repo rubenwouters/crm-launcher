@@ -457,6 +457,45 @@ if (! function_exists('initFb'))
         }
     }
 
+    /**
+     * Publish tweet
+     * @param  Request $request
+     * @return view
+     */
+    function publishTweet($tweet)
+    {
+        $client = initTwitter();
+
+        try {
+            $publishment = $client->post('statuses/update.json?status=' . $tweet);
+            return json_decode($publishment->getBody(), true);
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+        }
+    }
+
+    /**
+     * Publish post
+     * @param  Request $request
+     * @return view
+     */
+    function publishPost($post)
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $publishment = $fb->post('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/feed?&message=' . $post, ['access_token' => $token]);
+            return json_decode($publishment->getBody());
+
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+            return back();
+        }
+    }
+
     function answerPost($answer, $messageId)
     {
         $fb = initFb();

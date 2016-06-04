@@ -694,6 +694,13 @@ class CasesController extends Controller
         }
     }
 
+    /**
+     * Insert inner comment in DB
+     * @param  Request $request
+     * @param  integer $messageId
+     * @param  object $reply
+     * @return void
+     */
     private function insertInnerComment($request, $messageId, $reply)
     {
         $innerComment = new InnerComment();
