@@ -21,6 +21,7 @@ class UsersController extends Controller
     public function index()
     {
         $team = User::where('canViewCRM', 1)->paginate(7, ['*'],'team');
+        
         return view('crm-launcher::users.index')->with('team', $team);
     }
 

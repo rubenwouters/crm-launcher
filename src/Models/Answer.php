@@ -7,6 +7,11 @@ use Carbon\Carbon;
 
 class Answer extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
+    protected $table = 'answers';
 
     // DB relationships
     public function message(){
@@ -25,7 +30,7 @@ class Answer extends Model
         return $this->belongsTo('App\User');
     }
 
-    public function case(){
+    public function caseOverview(){
         return $this->belongsTo('App\CaseOverview');
     }
 

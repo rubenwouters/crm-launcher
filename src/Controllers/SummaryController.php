@@ -12,6 +12,20 @@ use Session;
 class SummaryController extends Controller
 {
     /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter
+     */
+    protected $case;
+
+    /**
+     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     */
+    public function __construct(CaseOverview $case)
+    {
+        $this->case = $case;
+    }
+
+    /**
      * Add summary to case
      * @param Request $request
      * @param integer  $caseId
@@ -25,9 +39,10 @@ class SummaryController extends Controller
         $summary->summary = $request->input('summary');
         $summary->save();
 
-        $this->openCase($caseId);
-
+        $case = CaseOverview::find($caseId);
+        $this->case->openCase($case);
         Session::flash('flash_success', trans('crm-launcher::success.summary_added'));
+
         return back();
     }
 
@@ -46,19 +61,7 @@ class SummaryController extends Controller
         }
 
         Session::flash('flash_success', trans('crm-launcher::success.summary_deleted'));
-        return back();
-    }
 
-    /**
-     * Mark case as "open" (after your first summary is added)
-     * @param  integer $caseId
-     * @return void
-     */
-    private function openCase($caseId)
-    {
-        $case = CaseOverview::find($caseId);
-        $case->status = 1;
-        $case->save();
-        Session::flash('flash_success', trans('crm-launcher::success.case_reopen'));
+        return back();
     }
 }

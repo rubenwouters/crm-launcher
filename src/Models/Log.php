@@ -7,6 +7,12 @@ use Carbon\Carbon;
 
 class Log extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
+    protected $table = 'logs';
+
     public function scopeLatestLog($query, $type)
     {
         return $query->where('case_type', $type)->orderBy('id', 'DESC')->first()->created_at;
@@ -22,7 +28,7 @@ class Log extends Model
      * @param  string $type
      * @return void
      */
-    public static function updateLog($type)
+    public function updateLog($type)
     {
         $log = new Log();
         if ($type == 'fetching') {

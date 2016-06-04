@@ -40,9 +40,9 @@
                         </div>
 
                         <h3>
-                            @if (isTwitterEnvFilledOut() && ! validTwitterSettings())
+                            @if (isTwitterEnvFilledOut() && ! $validTwitterSettings)
                                 Wrong credentials, check .ENV file.
-                            @elseif(isTwitterEnvFilledOut() && validTwitterSettings())
+                            @elseif(isTwitterEnvFilledOut() && $validTwitterSettings)
                                 Twitter linked
                             @else
                                 Twitter not linked.
@@ -54,12 +54,12 @@
                     <div class="col-md-4">
                         <h2>Go.</h2>
 
-                        <div class="go-btn @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! validTwitterSettings())) disabled @endif">
+                        <div class="go-btn @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! $validTwitterSettings)) disabled @endif">
                             <a href="/crm/launch">Launch</a>
                         </div>
 
                         <h3 class="launch">
-                            @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! validTwitterSettings()))
+                            @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! $validTwitterSettings))
                                 Houston, we've got a problem.
                             @else
                                 Your customers will love you.

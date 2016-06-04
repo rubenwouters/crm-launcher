@@ -5,8 +5,10 @@ Route::group(['middleware' => ['web', 'auth', 'CanViewCRM']], function () {
     // Dashboard (overview) routes
     Route::get('/crm/dashboard', 'Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
     Route::get('/crm/launch', 'Rubenwouters\CrmLauncher\Controllers\DashboardController@launch');
-    Route::get('facebook', 'Rubenwouters\CrmLauncher\Controllers\DashboardController@askFbPermissions');
-    Route::get('/callback', 'Rubenwouters\CrmLauncher\Controllers\DashboardController@fbCallback');
+
+    // Facebook login routes
+    Route::get('facebook', 'Rubenwouters\CrmLauncher\Controllers\FacebookLoginController@askFbPermissions');
+    Route::get('/callback', 'Rubenwouters\CrmLauncher\Controllers\FacebookLoginController@fbCallback');
 
     // Publish routes
     Route::get('/crm/publisher', 'Rubenwouters\CrmLauncher\Controllers\PublishController@index');

@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Reaction extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
+    protected $table = 'reactions';
+
     public function publishment()
     {
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Publishment');

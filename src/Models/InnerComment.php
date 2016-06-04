@@ -7,8 +7,11 @@ use Carbon\Carbon;
 
 class InnerComment extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
     protected $table = 'inner_comments';
-    protected $primaryKey = 'id';
 
     // DB relationships
     public function caseOverview(){
@@ -40,10 +43,14 @@ class InnerComment extends Model
     }
 
 
-    public function scopeLatestInnerCommentDate($query)
+    public function scopeLatestInnerCommentDate($query, $type)
     {
-        if ($query->where('reaction_id', '0')->exists()) {
-            return $query->orderBy('id', 'DESC')->where('reaction_id', '0')->first()->post_date;
+        if ($type == 'message') {
+            if ($query->where('reaction_id', '0')->exists()) {
+                return $query->orderBy('id', 'DESC')->where('reaction_id', '0')->first()->post_date;
+            }
+        } else {
+            return $query->orderBy('id', 'DESC')->where('reaction_id', '!=', '0')->first()->post_date;
         }
 
         return Carbon::today();

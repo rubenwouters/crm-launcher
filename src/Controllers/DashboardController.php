@@ -12,9 +12,33 @@ use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\Models\Message;
 use Rubenwouters\CrmLauncher\Models\Log;
 use Rubenwouters\CrmLauncher\Models\Answer;
+use Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter;
 
 class DashboardController extends Controller
 {
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Contact
+     */
+    protected $log;
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter
+     */
+    protected $validateTwitter;
+
+
+    /**
+     * @param Rubenwouters\CrmLauncher\Models\Contact $contact
+     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     */
+    public function __construct(Log $log, ValidateTwitter $validateTwitter)
+    {
+        $this->log = $log;
+        $this->validateTwitter = $validateTwitter;
+    }
+
     /**
     * Shows dashboard when all required permissions are granted
     * @return view
@@ -22,7 +46,9 @@ class DashboardController extends Controller
     public function index()
     {
         if (! Configuration::exists() || ! Configuration::first()->valid_credentials) {
-            return view('crm-launcher::dashboard.facebook');
+
+            $data = ['validTwitterSettings' => $this->validateTwitter->validTwitterSettings()];
+            return view('crm-launcher::dashboard.facebook', $data);
         }
 
         $config = Configuration::first();
@@ -37,60 +63,22 @@ class DashboardController extends Controller
                 $this->fetchFollowers();
             }
 
-            Log::updateLog('dashboard_update');
+            $this->log->updateLog('dashboard_update');
         }
 
-        $newCases = CaseOverview::newCases();
-        $openCases = CaseOverview::openCases();
-        $closedCases = CaseOverview::closedCases();
-        $avgWaitTime = $this->getAvgWaitTime();
-        $avgMessages = $this->getAvgMessages();
-        $avgHelpers = $this->getAvgHelpers();
-        $todaysMessages = $this->getTodaysMessages();
-        $followers = Configuration::first()->twitter_followers;
-        $likes = Configuration::first()->facebook_likes;
+        $data = [
+            'newCases' => CaseOverview::newCases(),
+            'openCases' => CaseOverview::openCases(),
+            'closedCases' => CaseOverview::closedCases(),
+            'avgWaitTime' => $this->getAvgWaitTime(),
+            'avgMessages' => $this->getAvgMessages(),
+            'avgHelpers' => $this->getAvgHelpers(),
+            'todaysMessages' => $this->getTodaysMessages(),
+            'followers' => Configuration::first()->twitter_followers,
+            'likes' => Configuration::first()->facebook_likes,
+        ];
 
-        return view('crm-launcher::dashboard.index')
-            ->with('newCases', $newCases)
-            ->with('openCases', $openCases)
-            ->with('closedCases', $closedCases)
-            ->with('avgWaitTime', $avgWaitTime)
-            ->with('avgMessages', $avgMessages)
-            ->with('avgHelpers', $avgHelpers)
-            ->with('todaysMessages', $todaysMessages)
-            ->with('followers', $followers)
-            ->with('likes', $likes);
-    }
-
-    /**
-     * Ask permission on Facebook account.
-     * @return view
-     */
-    public function askFbPermissions()
-    {
-        return Socialite::with('facebook')->scopes(['publish_pages', 'manage_pages', 'read_page_mailboxes'])->redirect();
-    }
-
-    /**
-     * Handles redirect by Facebook after login. Inserts Facebook page Access token
-     * @return view
-     */
-    public function fbCallback()
-    {
-        try {
-            $fbUser = Socialite::with('facebook')->user();
-            $token = $fbUser->token;
-            $pageAccessToken = $this->getPageAccessToken($token);
-
-            if ($pageAccessToken) {
-                $this->insertFbToken($pageAccessToken);
-            }
-
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            getErrorMessage($e->getResponse()->getStatusCode());
-        }
-
-        return redirect('/crm/dashboard');
+        return view('crm-launcher::dashboard.index', $data);
     }
 
     /**
@@ -103,7 +91,7 @@ class DashboardController extends Controller
             $config = new Configuration();
             $config->save();
 
-            validTwitterSettings();
+            $this->validateTwitter->validTwitterSettings();
         } else {
             $config = Configuration::first();
         }
@@ -114,43 +102,6 @@ class DashboardController extends Controller
         return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
     }
 
-    /**
-     * Uses user access token to become never-expiring page access token.
-     * @param  string $userToken
-     * @return string (page access token)
-     */
-    private function getPageAccessToken($userToken)
-    {
-        $fb = initFb();
-
-        try {
-            $response = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=access_token', $userToken);
-            $response = json_decode($response->getBody());
-        } catch (Exception $e) {
-            getErrorMessage('permission');
-            return false;
-        }
-
-        return $response->access_token;
-    }
-
-    /**
-     * Insert Facebook access token
-     * @param  string $token
-     * @return void
-     */
-    private function insertFbToken($token)
-    {
-        if (count(Configuration::find(1)) < 1) {
-            $config = new Configuration();
-        } else {
-            $config = Configuration::find(1);
-        }
-
-        $config->linked_facebook = 1;
-        $config->facebook_access_token = $token;
-        $config->save();
-    }
 
 
     /**
@@ -176,6 +127,7 @@ class DashboardController extends Controller
         }
 
         if (count($arTime) != 0) {
+
             return round(array_sum($arTime)/count($arTime)/60);
         }
 
@@ -198,6 +150,7 @@ class DashboardController extends Controller
         }
 
         if ($counter > 0) {
+
             return round($counter/count($cases), 1);
         }
 
@@ -218,6 +171,7 @@ class DashboardController extends Controller
         }
 
         if ($counter > 0) {
+
             return round($counter/count($cases), 1);
         }
 
@@ -251,6 +205,7 @@ class DashboardController extends Controller
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             getErrorMessage($e->getResponse()->getStatusCode());
+
             return back();
         }
     }
@@ -272,8 +227,8 @@ class DashboardController extends Controller
             return $count['fan_count'];
 
         } catch (Exception $e) {
-
             getErrorMessage($e->getCode());
+
             return back();
         }
     }
@@ -297,7 +252,6 @@ class DashboardController extends Controller
             $config = Configuration::first();
             $config->facebook_likes = $nr;
             $config->save();
-
         }
     }
 

@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class CaseOverview extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
     protected $table = 'cases';
-    protected $primaryKey = 'id';
 
     //DB relationships
     public function users()
@@ -98,5 +101,44 @@ class CaseOverview extends Model
     public function scopePendingCases($query)
     {
         return $query->where('status', '1')->orWhere('status', '2')->get();
+    }
+
+    /**
+     * Inserts new case in DB
+     * @param  string $type
+     * @param  array $message
+     * @param  object $contact
+     * @return object
+     */
+    public function createCase($type, $message, $contact)
+    {
+        $case = new CaseOverview();
+        $case->contact_id = $contact->id;
+
+        if ($type == 'twitter_mention') {
+            $case->origin = "Twitter mention";
+        } else if ($type == 'twitter_direct') {
+            $case->origin = "Twitter direct";
+        } else if ($type == 'facebook_post') {
+            $case->origin = "Facebook post";
+        } else if ($type == "facebook_private") {
+            $case->origin = 'Facebook private';
+        }
+
+        $case->status = 0;
+        $case->save();
+
+        return $case;
+    }
+
+    /**
+     * Changes status of case to "open"
+     * @param  object $case
+     * @return void
+     */
+    public function openCase($case)
+    {
+        $case->status = 1;
+        $case->save();
     }
 }

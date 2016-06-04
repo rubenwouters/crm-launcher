@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Publishment extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
+    protected $table = 'publishments';
+
     public function reactions()
     {
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\Reaction');

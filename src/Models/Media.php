@@ -6,6 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Media extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
+    protected $table = 'media';
+
     public function message()
     {
         return $this->belongsTo('App\Message');

@@ -34,7 +34,6 @@
                             <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'publish')) active @endif" ><a href="/crm/publisher">Publisher</a></li>
                             <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'case')) active @endif" ><a href="/crm/cases">Cases</a></li>
                             <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'user')) active @endif" ><a href="/crm/users">Team</a></li>
-                            <li><a href="#">Settings</a></li>
                         @else
                             <li class="@if(strpos($_SERVER['REQUEST_URI'], 'dashboard')) active @endif"><a href="/crm/dashboard">Take off</a></li>
                         @endif

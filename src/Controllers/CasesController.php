@@ -19,7 +19,9 @@ use Rubenwouters\CrmLauncher\Models\InnerAnswer;
 use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\Models\Media;
 use Rubenwouters\CrmLauncher\Models\Log;
-
+use Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter;
+use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
+use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 
 class CasesController extends Controller
 {
@@ -28,6 +30,45 @@ class CasesController extends Controller
      * @var array
      */
     public static $arActive = [];
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Log
+     */
+    protected $log;
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Case
+     */
+    protected $case;
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
+     */
+    protected $twitterContent;
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
+     */
+    protected $facebookContent;
+
+    /**
+     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     */
+    public function __construct(
+        Log $log,
+        CaseOverview $case,
+        FetchTwitterContent $twitterContent,
+        FetchFacebookContent $facebookContent
+    ) {
+        $this->log = $log;
+        $this->case = $case;
+        $this->twitterContent = $twitterContent;
+        $this->facebookContent = $facebookContent;
+    }
 
     /**
     * Shows cases overview
@@ -41,21 +82,8 @@ class CasesController extends Controller
             $this->initIds();
         }
 
-        if ($secondsAgo > 60) {
-
-            if (isFacebookLinked()) {
-                $this->collectPrivateConversations();
-                $this->collectPosts();
-            }
-
-            if (isTwitterLinked()) {
-                $this->collectMentions();
-                $this->collectDirectMessages();
-            }
-
-            Log::updateLog('fetching');
-        }
         $cases = CaseOverview::AllCases();
+
         return view('crm-launcher::cases.index')->with('cases', $cases);
     }
 
@@ -121,6 +149,7 @@ class CasesController extends Controller
             $tweetId = $message->tweet_id;
         } else {
             getErrorMessage("100");
+
             return back();
         }
 
@@ -134,8 +163,9 @@ class CasesController extends Controller
             $type  = 'private';
         }
 
-        $reply = answerTweet($request, $type, $tweetId, $handle);
+        $reply = $this->twitterContent->answerTweet($request, $type, $tweetId, $handle);
         $this->insertAnswer('tweet', $request, $case, $message, $reply, $handle);
+
         return back();
     }
 
@@ -159,7 +189,7 @@ class CasesController extends Controller
             $answer = $request->input('answer');
         }
 
-        $reply = answerPost($answer, $messageId);
+        $reply = $this->facebookContent->answerPost($answer, $messageId);
 
         if ($request->input('in_reply_to') != '') {
             $this->insertInnerComment($request, $messageId, $reply);
@@ -167,7 +197,8 @@ class CasesController extends Controller
             $this->insertAnswer('facebook_post', $request, $case, $answer_to, $reply, null);
         }
 
-        $this->openCase($case);
+        $this->case->openCase($case);
+
         return back();
     }
 
@@ -185,8 +216,9 @@ class CasesController extends Controller
         $conversation = $case->messages->sortByDesc('id')->first();
         $answer = $request->input('answer');
 
-        $reply = answerPrivate($conversation, $answer);
+        $reply = $this->facebookContent->answerPrivate($conversation, $answer);
         $this->insertAnswer('facebook_private', $request, $case, $conversation, $reply, null);
+
         return back();
     }
 
@@ -200,7 +232,7 @@ class CasesController extends Controller
         $case = CaseOverview::find($caseId);
         $contact = $case->contact;
         $twitterId = $contact->twitter_id;
-        toggleFollowUser($contact, $twitterId);
+        $this->twitterContent->toggleFollowUser($contact, $twitterId);
 
         return back();
     }
@@ -216,9 +248,10 @@ class CasesController extends Controller
         $answer = Answer::find($messageId);
         $case = CaseOverview::find($caseId);
 
-        deleteTweet($case, $answer);
+        $this->twitterContent->deleteTweet($case, $answer);
 
         $answer->delete();
+
         return back();
     }
 
@@ -233,7 +266,8 @@ class CasesController extends Controller
         $answer = Answer::find($messageId);
         $answer->delete();
 
-        deleteFbPost($answer);
+        $this->facebookContent->deleteFbPost($answer);
+
         return back();
     }
 
@@ -248,7 +282,8 @@ class CasesController extends Controller
         $comment = InnerComment::find($messageId);
         $comment->delete();
 
-        deleteFbPost($comment);
+        $this->facebookContent->deleteFbPost($comment);
+
         return back();
     }
 
@@ -270,11 +305,9 @@ class CasesController extends Controller
         }
 
         $case->save();
+
         return back();
     }
-
-
-
 
     /**
      * Get most recent id's for Twitter & Facebook
@@ -286,17 +319,17 @@ class CasesController extends Controller
 
         if (isTwitterLinked()) {
 
-            $mentionId = newestMentionId();
-            $directId = newestDirectId();
+            $mentionId = $this->twitterContent->newestMentionId();
+            $directId = $this->twitterContent->newestDirectId();
 
             $message->tweet_id = $mentionId;
             $message->direct_id = $directId;
         }
 
         if (isFacebookLinked()) {
-            
-            $postId = newestPostId();
-            $conversationId = newestConversationId();
+
+            $postId = $this->facebookContent->newestPostId();
+            $conversationId = $this->facebookContent->newestConversationId();
 
             $message->fb_post_id = $postId;
             $message->fb_private_id = $conversationId;
@@ -305,7 +338,7 @@ class CasesController extends Controller
         $message->post_date = Carbon::now();
         $message->save();
 
-        Log::updateLog('fetching');
+        $this->log->updateLog('fetching');
     }
 
     /**
@@ -342,6 +375,7 @@ class CasesController extends Controller
         }
 
         if (! isset($query)) {
+
             return false;
         }
 
@@ -392,306 +426,6 @@ class CasesController extends Controller
     }
 
     /**
-     * Gets all public mentions on Twitter
-     * @return void
-     */
-    private function collectMentions()
-    {
-        $mentions = array_reverse(fetchMentions('message'));
-
-        foreach ($mentions as $key => $mention) {
-
-            $date = changeDateFormat($mention['created_at']);
-            $inReplyTo = $mention['in_reply_to_status_id_str'];
-            $message = new Message();
-
-            if ($inReplyTo == null) {
-                $contact = $this->createContact('twitter_mention', $mention);
-                $case = $this->createCase('twitter_mention', $mention, $contact);
-            }
-
-            if ((Answer::where('tweet_id', $inReplyTo)->exists() || Message::where('tweet_id', $inReplyTo)->exists())
-                && $inReplyTo != null
-            ) {
-                $contact = $this->createContact('twitter_mention', $mention);
-                $message->contact_id = $contact->id;
-
-                if (Answer::where('tweet_id', $inReplyTo)->exists()) {
-                    $post = Answer::where('tweet_id', $inReplyTo)->first();
-                } else {
-                    $post = Message::where('tweet_id', $inReplyTo)->first();
-                }
-
-                $message->case_id = $post->case_id;
-                $case = CaseOverview::find($post->case_id);
-
-            } else if ($inReplyTo != null && Publishment::where('tweet_id', $inReplyTo)->exists()) {
-                continue;
-            } else if ($inReplyTo != null) {
-                $message->tweet_reply_id = $inReplyTo;
-            } else {
-                $message->case_id = $case->id;
-            }
-
-            $message->contact_id = $contact->id;
-            $message->tweet_id = $mention['id_str'];
-            $message->message = $mention['text'];
-            $message->post_date = $date;
-            $message->save();
-
-            Media::handleMedia($message->id, $mention, 'twitter');
-            $this->updateCase($case->id, 'twitter', $mention['id_str']);
-        }
-    }
-
-    /**
-     * Gets all direct (private) messages on Twitter
-     * @return void
-     */
-    private function collectDirectMessages()
-    {
-        $sinceId = latestDirect();
-        $directs = fetchDirectMessages($sinceId);
-
-        foreach ($directs as $key => $direct) {
-            $date = changeDateFormat($direct['created_at']);
-            $message = new Message();
-
-            if (Contact::where('twitter_id', $direct['sender']['id_str'])->exists()) {
-                $contact = Contact::where('twitter_id', $direct['sender']['id_str'])->first();
-                if (count($contact->cases)) {
-                    $case = $contact->cases()->where('origin', 'Twitter direct')->orderBy('id', 'DESC')->first();
-                } else {
-                    $case = $this->createCase('twitter_direct', $direct, $contact);
-                }
-
-                $message->case_id = $case->id;
-                $this->openCase($case);
-            } else {
-                $contact = $this->createContact('twitter_direct', $direct);
-                $case = $this->createCase('twitter_direct', $direct, $contact);
-                $message->case_id = $case->id;
-            }
-
-            $message->contact_id = $contact->id;
-            $message->direct_id = $direct['id_str'];
-            $message->message = $direct['text'];
-            $message->post_date = $date;
-            $message->save();
-
-            Media::handleMedia($message->id, $direct, 'twitter');
-            $this->updateCase($case->id, 'twitter', $direct['id_str']);
-        }
-    }
-
-    /**
-     * Gets all posts on Facebook
-     * @return view
-     */
-    private function collectPosts()
-    {
-        $newestPost = Message::getNewestPostDate();
-        $posts = fetchPosts($newestPost);
-
-        foreach ($posts->data as $key => $post) {
-            $contact = $this->createContact('facebook', $post);
-            $case = $this->createCase('facebook_post', $post, $contact);
-
-            $message = new Message();
-            $message->contact_id = $contact->id;
-            $message->fb_post_id = $post->id;
-            $message->case_id = $case->id;
-
-            if (isset($post->message)) {
-                $message->message = $post->message;
-            }
-            $message->post_date = changeFbDateFormat($post->created_time);
-            $message->save();
-
-            $this->updateCase($case->id, 'facebook', $post->id);
-            Media::handleMedia($message->id, $post, 'facebook');
-        }
-
-        $newestComment = latestCommentDate();
-        $newestInnerComment = InnerComment::LatestInnerCommentDate();
-        $this->fetchComments($newestComment);
-        $this->fetchInnerComments($newestInnerComment);
-    }
-
-    /**
-     * Handles all private conversations from Facebook
-     * @return void
-     */
-    private function collectPrivateConversations()
-    {
-        $newest = Message::getNewestMessageDate();
-        $conversations = fetchPrivateConversations();
-
-        foreach ($conversations->data as $key => $conversation) {
-            if (changeFbDateFormat($conversation->updated_time) > $newest) {
-                $this->collectPrivateMessages($conversation, $newest);
-            }
-        }
-    }
-
-    /**
-     * Get the messages out of a conversation
-     * @param  object $conversation
-     * @param  datetime $newest
-     * @return void
-     */
-    private function collectPrivateMessages($conversation, $newest)
-    {
-        $messages = fetchPrivateMessages($conversation);
-
-        foreach ($messages->data as $key => $result) {
-            if ($result->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
-                && changeFbDateFormat($result->created_time) > $newest
-            ) {
-                $contact = $this->createContact('facebook', $result);
-
-                if (CaseOverview::PrivateFbMessages($contact)->exists()) {
-                    $case = CaseOverview::PrivateFbMessages($contact)->first();
-                    $case->origin = 'Facebook private';
-                    $case->contact_id = $contact->id;
-                    $case->status = 0;
-                    $case->save();
-                } else {
-                    $case = $this->createCase('facebook_private', $result, $contact);
-                }
-
-                $message = new Message();
-                $message->contact_id = $contact->id;
-                $message->fb_conversation_id = $conversation->id;
-                $message->fb_private_id = $result->id;
-                $message->case_id = $case->id;
-                $message->message = $result->message;
-                $message->post_date = changeFbDateFormat($result->created_time);
-                $message->save();
-
-                $this->updateCase($case->id, 'facebook', $conversation->id);
-                Media::handleMedia($message->id, $result, 'facebook_comment');
-            }
-        }
-    }
-
-    /**
-     * Update case table with latest id's added to the case
-     * @param  integer $caseId
-     * @param  integer $id
-     * @return void
-     */
-    private function updateCase($caseId, $type, $id)
-    {
-        $case = CaseOverview::find($caseId);
-
-        if ($type == 'facebook') {
-            $case->latest_fb_id = $id;
-        } else {
-            $case->latest_tweet_id = $id;
-        }
-
-        $case->save();
-    }
-
-    /**
-     * Fetch comments on post form Facebook
-     * @param  datetime $newest
-     * @return return collection
-     */
-    private function fetchComments($newest)
-    {
-        $cases = CaseOverview::where('status', '!=', '2')
-            ->where('origin', 'Facebook post')
-            ->get();
-
-        foreach ($cases as $key => $case) {
-            foreach ($case->messages->where('fb_reply_id', '') as $key => $message) {
-                $comments = fetchComments($newest, $message);
-
-                if (! empty($comments->data)) {
-                    foreach ($comments->data as $key => $comment) {
-
-                        if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
-                            && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
-                        ) {
-
-                            if (Contact::FindByFbId($comment->from->id)->exists()) {
-                                $contact = Contact::FindByFbId($comment->from->id)->first();
-                            } else {
-                                $contact = $this->createContact('facebook', $comment);
-                            }
-
-                            $msg = new Message();
-                            $msg->fb_reply_id = $message->fb_post_id;
-                            $msg->post_date = changeFbDateFormat($comment->created_time);
-                            $msg->contact_id = $contact->id;
-                            $msg->fb_post_id = $comment->id;
-                            $msg->case_id = $case->id;
-                            $msg->message = $comment->message;
-                            $msg->save();
-
-                            Media::handleMedia($msg->id, $comment, 'facebook_comment');
-                            $this->updateCase($case->id, 'facebook', $message->fb_post_id);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Fetch inner comments of facebook
-     * @param  datetime $newest
-     * @return void
-     */
-    private function fetchInnerComments($newest)
-    {
-        $messages = Message::where('fb_post_id', '!=', '')->get();
-        $answers = Answer::where('fb_post_id', '!=', '')->get();
-
-        $messages = $messages->merge($answers);
-
-        foreach ($messages as $key => $message) {
-
-            $comments = fetchInnerComments($newest, $message['fb_post_id']);
-
-            if($comments == null) {
-                continue;
-            }
-
-            foreach ($comments->data as $key => $comment) {
-                if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
-                    && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
-                ) {
-                    if (! Contact::FindByFbId($comment->from->id)->exists()) {
-                        $contact = $this->createContact('facebook', $comment);
-                    } else {
-                        $contact = Contact::FindByFbId($comment->from->id)->first();
-                    }
-
-                    $innerComment = new InnerComment();
-                    $innerComment->fb_reply_id = $message['fb_post_id'];
-                    $innerComment->post_date = changeFbDateFormat($comment->created_time);
-                    $innerComment->contact_id = $contact->id;
-
-                    if (is_a($message, "Rubenwouters\CrmLauncher\Models\Answer")) {
-                        $innerComment->answer_id = $message['id'];
-                    } else {
-                        $innerComment->message_id = $message['id'];
-                    }
-
-                    $innerComment->fb_post_id = $comment->id;
-                    $innerComment->message = $comment->message;
-                    $innerComment->save();
-
-                    Media::handleMedia($innerComment->id, $comment, 'facebook_innerComment');
-                }
-            }
-        }
-    }
-
-    /**
      * Insert inner comment in DB
      * @param  Request $request
      * @param  integer $messageId
@@ -716,87 +450,6 @@ class CasesController extends Controller
         $innerComment->message = $request->input('answer_specific');
         $innerComment->post_date = date('Y-m-d H:i:s');
         $innerComment->save();
-    }
-
-    /**
-     * Inserts new contact in DB
-     * @param  string $type
-     * @param  array $message
-     * @return object
-     */
-    private function createContact($type, $message)
-    {
-        if ($type == "twitter_mention") {
-
-            $contact = $this->getContact('twitter', $message['user']['id_str']);
-            $contact->name = $message['user']['name'];
-            $contact->twitter_handle = $message['user']['screen_name'];
-            $contact->twitter_id =  $message['user']['id_str'];
-            $contact->profile_picture = $message['user']['profile_image_url'];
-
-        } else if ($type == "twitter_direct") {
-
-            $contact = $this->getContact('twitter', $message['sender']['id_str']);
-            $contact->name = $message['sender']['name'];
-            $contact->twitter_handle = $message['sender']['screen_name'];
-            $contact->twitter_id =  $message['sender']['id_str'];
-            $contact->profile_picture = $message['sender']['profile_image_url'];
-
-        } else if ($type == "facebook") {
-
-            $contact = $this->getContact('facebook', $message->from->id);
-            $contact->name = $message->from->name;
-            $contact->facebook_id = $message->from->id;
-            $contact->profile_picture = getProfilePicture($message->from->id);
-
-        }
-
-        $contact->save();
-        return $contact;
-    }
-
-    /**
-     * Check if contact exists, if not create a new user
-     * @param  string  $type
-     * @param  string  $id
-     * @return collection
-     */
-    private function getContact($type, $id) {
-        if ($type == 'twitter' && Contact::where('twitter_id', $id)->exists()) {
-            return Contact::findByTwitterId($id);
-        } else if ($type == 'facebook' && Contact::where('facebook_id', $id)->exists()) {
-            return Contact::findByFbId($id);
-        }
-
-        return new Contact();
-    }
-
-    /**
-     * Inserts new case in DB
-     * @param  string $type
-     * @param  array $message
-     * @param  object $contact
-     * @return object
-     */
-    private function createCase($type, $message, $contact)
-    {
-        $case = new CaseOverview();
-        $case->contact_id = $contact->id;
-
-        if ($type == 'twitter_mention') {
-            $case->origin = "Twitter mention";
-        } else if ($type == 'twitter_direct') {
-            $case->origin = "Twitter direct";
-        } else if ($type == 'facebook_post') {
-            $case->origin = "Facebook post";
-        } else if ($type == "facebook_private") {
-            $case->origin = 'Facebook private';
-        }
-
-        $case->status = 0;
-        $case->save();
-
-        return $case;
     }
 
     /**
@@ -843,7 +496,7 @@ class CasesController extends Controller
         }
         $answer->save();
 
-        $this->openCase($case);
+        $this->case->openCase($case);
         $this->linkCaseToUser($case);
     }
 
@@ -858,16 +511,5 @@ class CasesController extends Controller
         if (!$case->users->contains(Auth::user()->id)) {
             $case->users()->attach(Auth::user()->id);
         }
-    }
-
-    /**
-     * Changes status of case to "open"
-     * @param  object $case
-     * @return void
-     */
-    private function openCase($case)
-    {
-        $case->status = 1;
-        $case->save();
     }
 }

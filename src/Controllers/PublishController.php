@@ -17,10 +17,39 @@ use Carbon\Carbon;
 use \Exception;
 use Datetime;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
+use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 
 class PublishController extends Controller
 {
     use ValidatesRequests;
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Contact
+     */
+    protected $log;
+
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Contact
+     */
+    protected $twitterContent;
+
+
+    /**
+     * @param Rubenwouters\CrmLauncher\Models\Contact $contact
+     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     */
+    public function __construct(
+        Log $log,
+        FetchTwitterContent $twitterContent,
+        FetchFacebookContent $facebookContent
+    ) {
+        $this->log = $log;
+        $this->twitterContent = $twitterContent;
+        $this->facebookContent = $facebookContent;
+    }
 
     /**
      * Show start view of publisher
@@ -33,10 +62,11 @@ class PublishController extends Controller
 
         if (! $secondsAgo || $secondsAgo > 30) {
             $this->updateStats($page);
-            Log::updateLog('publishments');
+            $this->log->updateLog('publishments');
         }
 
         $publishments = Publishment::orderBy('id', 'DESC')->paginate(5);
+
         return view('crm-launcher::publisher.index')->with('publishments', $publishments);
     }
 
@@ -52,7 +82,7 @@ class PublishController extends Controller
 
         if (! $secondsAgo || $secondsAgo > 60) {
             $this->fetchReactions($id);
-            Log::updateLog('publishment_detail');
+            $this->log->updateLog('publishment_detail');
         }
 
         $tweets = $publishment->reactions()->where('tweet_id', '!=', '')->get();
@@ -80,7 +110,7 @@ class PublishController extends Controller
             $replyTo = $publishment->tweet_id;
         }
 
-        $reply = answerTweet($request, 'public', $replyTo, null);
+        $reply = $this->twitterContent->answerTweet($request, 'public', $replyTo, null);
         $this->insertReaction('twitter', $reply, $id);
 
         return back();
@@ -98,11 +128,11 @@ class PublishController extends Controller
 
         if ($request->input('in_reply_to') != "") {
             $replyTo = $request->input('in_reply_to');
-            $reply = answerPost($request->input('answer'), $replyTo);
+            $reply = $this->facebookContent->answerPost($request->input('answer'), $replyTo);
             $this->insertInnerComment($id, $request, $replyTo, $reply);
         } else {
             $replyTo = $publishment->fb_post_id;
-            $reply = answerPost($request->input('answer'), $replyTo);
+            $reply = $this->facebookContent->answerPost($request->input('answer'), $replyTo);
             $this->insertReaction('facebook', $reply, $id, $request->input('answer'));
         }
 
@@ -124,12 +154,12 @@ class PublishController extends Controller
         $content = rawurlencode($request->input('content'));
 
         if (in_array('twitter', $request->input('social'))) {
-            $publishment = publishTweet($content);
+            $publishment = $this->twitterContent->publishTweet($content);
             $this->insertPublishment('twitter', $publishment, $content);
         }
 
         if (in_array('facebook', $request->input('social'))) {
-            $publishment = publishPost($content);
+            $publishment = $this->facebookContent->publishPost($content);
             $this->insertPublishment('facebook', $publishment, $content);
         }
 
@@ -144,10 +174,10 @@ class PublishController extends Controller
      */
     private function checkPage()
     {
+        $page = 1;
+
         if (isset($_GET['page'])) {
             $page = $_GET['page'];
-        } else {
-            $page = 1;
         }
 
         return $page;
@@ -261,12 +291,12 @@ class PublishController extends Controller
      */
     private function fetchMentions($id)
     {
-        $mentions = fetchMentions('reaction');
+        $mentions = $this->twitterContent->fetchMentions('reaction');
         $publishment = Publishment::find($id);
 
         foreach ($mentions as $key => $mention) {
-            if (($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || Reaction::where('tweet_id', $mention['in_reply_to_status_id_str'])
-                && $publishment->tweet_id != null)->exists()
+            if (($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || Reaction::where('tweet_id', $mention['in_reply_to_status_id_str'])->exists())
+                && $publishment->tweet_id != null
             ) {
                 $reaction = $this->insertReaction('twitter', $mention, $id);
                 Media::handleMedia($reaction->id, $mention, 'twitter_reaction');
@@ -283,8 +313,8 @@ class PublishController extends Controller
         $publishments = Publishment::facebookPosts();
 
         foreach ($publishments as $key => $publishment) {
-            $newest = latestCommentDate();
-            $comments = fetchComments($newest, $publishment);
+            $newest = latestCommentDate('reaction');
+            $comments = $this->facebookContent->fetchComments($newest, $publishment);
 
             if ($comments != null) {
                 foreach ($comments->data as $key => $comment) {
@@ -307,11 +337,11 @@ class PublishController extends Controller
     private function fetchInnerComments($id)
     {
         $reactions = Publishment::find($id)->reactions()->where('fb_post_id', '!=', '')->get();
-        $newest = InnerComment::LatestInnerCommentDate();
+        $newest = InnerComment::LatestInnerCommentDate('reaction');
 
         foreach ($reactions as $key => $reaction) {
 
-            $comments = fetchInnerComments($newest, $reaction->fb_post_id);
+            $comments = $this->facebookContent->fetchInnerComments($newest, $reaction->fb_post_id);
             foreach ($comments->data as $key => $comment) {
 
                 if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
@@ -377,9 +407,11 @@ class PublishController extends Controller
 
         try {
             $tweets = $client->get('statuses/user_timeline.json?count=5&user_id=' . $twitterId . '&max_id=' . $maxId);
+
             return json_decode($tweets->getBody(), true);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             getErrorMessage($e->getResponse()->getStatusCode());
+
             return back();
         }
     }
@@ -426,6 +458,7 @@ class PublishController extends Controller
             }
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
+
             return back();
         }
 

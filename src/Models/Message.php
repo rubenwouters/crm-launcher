@@ -7,9 +7,14 @@ use Carbon\Carbon;
 
 class Message extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
+    protected $table = 'messages';
 
     // DB relationships
-    public function case()
+    public function caseOverview()
     {
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\CaseOverview');
     }

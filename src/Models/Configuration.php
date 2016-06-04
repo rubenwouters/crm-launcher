@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Configuration extends Model
 {
+    /**
+     * table name
+     * @var string
+     */
     protected $table = 'configurations';
-    protected $primaryKey = 'id';
 
     public function scopeFbAccessToken($query)
     {

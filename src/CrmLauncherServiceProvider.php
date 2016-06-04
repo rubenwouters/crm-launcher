@@ -14,7 +14,6 @@ class CrmLauncherServiceProvider extends ServiceProvider
    protected $providers = [
        'Laravel\Socialite\SocialiteServiceProvider',
        'Collective\Html\HtmlServiceProvider',
-
    ];
 
     /**
@@ -34,24 +33,14 @@ class CrmLauncherServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        include __DIR__.'/routes.php';
-
+        if (! $this->app->routesAreCached()) {
+            require __DIR__.'/routes.php';
+        }
 
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'crm-launcher');
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'crm-launcher');
         $this->registerCommands();
-
-        $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/crm-launcher'),
-        ]);
-
-        $this->publishes([
-            __DIR__.'/../public' => base_path('public/crm-launcher/'),
-        ]);
-
-        $this->publishes([
-            __DIR__.'/../config/crm-launcher.php' => config_path('crm-launcher.php'),
-        ]);
+        $this->publish();
     }
 
     /**
@@ -64,6 +53,7 @@ class CrmLauncherServiceProvider extends ServiceProvider
         $this->registerServiceProviders();
         $this->registerAliases();
         $this->registerMiddleware();
+        $this->registerCrons();
     }
 
     /**
@@ -103,7 +93,41 @@ class CrmLauncherServiceProvider extends ServiceProvider
         $this->commands([
             'Rubenwouters\CrmLauncher\Commands\MigrateDatabase',
             'Rubenwouters\CrmLauncher\Commands\GrantAccess',
+            'Rubenwouters\CrmLauncher\Commands\UpdateCases',
         ]);
     }
 
+    /**
+     * Publish views, assets & config
+     * @return void
+     */
+    private function publish()
+    {
+        $this->publishes([
+            __DIR__.'/../resources/views' => resource_path('views/vendor/crm-launcher'),
+        ]);
+
+        $this->publishes([
+            __DIR__.'/../public' => base_path('public/crm-launcher/'),
+        ]);
+
+        $this->publishes([
+            __DIR__.'/../config/crm-launcher.php' => config_path('crm-launcher.php'),
+        ]);
+    }
+
+    /**
+     * Register cron jobs
+     * @return void
+     */
+    private function registerCrons()
+    {
+        $this->app->singleton('rubenwouters.crm-launcher.src.console.kernel', function($app) {
+            $dispatcher = $app->make(\Illuminate\Contracts\Events\Dispatcher::class);
+
+            return new \Rubenwouters\CrmLauncher\Console\Kernel($app, $dispatcher);
+        });
+
+        $this->app->make('rubenwouters.crm-launcher.src.console.kernel');
+    }
 }
