@@ -56,7 +56,10 @@ class CasesController extends Controller
     protected $facebookContent;
 
     /**
+     * @param Rubenwouters\CrmLauncher\Models\Log $log
      * @param Rubenwouters\CrmLauncher\Models\Case $case
+     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
+     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
      */
     public function __construct(
         Log $log,

@@ -53,18 +53,18 @@ class DashboardController extends Controller
 
         $config = Configuration::first();
 
-        if ($config->valid_credentials && ($this->lastUpdate() > 900 || !$this->lastUpdate())) {
-
-            if (isFacebookLinked()) {
-                $this->fetchLikes();
-            }
-
-            if (isTwitterLinked()) {
-                $this->fetchFollowers();
-            }
-
-            $this->log->updateLog('dashboard_update');
-        }
+        // if ($config->valid_credentials && ($this->lastUpdate() > 900 || !$this->lastUpdate())) {
+        //
+        //     if (isFacebookLinked()) {
+        //         $this->fetchLikes();
+        //     }
+        //
+        //     if (isTwitterLinked()) {
+        //         $this->fetchFollowers();
+        //     }
+        //
+        //     $this->log->updateLog('dashboard_update');
+        // }
 
         $data = [
             'newCases' => CaseOverview::newCases(),
@@ -210,50 +210,50 @@ class DashboardController extends Controller
         }
     }
 
-    /**
-     * Get Facebook page likes
-     * @return integer
-     */
-    private function fetchLikes()
-    {
-        try {
-            $fb = initFb();
-            $token = Configuration::FbAccessToken();
-            $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
-            $count = json_decode($count->getBody(), true);
+    // /**
+    //  * Get Facebook page likes
+    //  * @return integer
+    //  */
+    // private function fetchLikes()
+    // {
+    //     try {
+    //         $fb = initFb();
+    //         $token = Configuration::FbAccessToken();
+    //         $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
+    //         $count = json_decode($count->getBody(), true);
+    //
+    //         $this->updateStats('facebook', $count['fan_count']);
+    //
+    //         return $count['fan_count'];
+    //
+    //     } catch (Exception $e) {
+    //         getErrorMessage($e->getCode());
+    //
+    //         return back();
+    //     }
+    // }
 
-            $this->updateStats('facebook', $count['fan_count']);
-
-            return $count['fan_count'];
-
-        } catch (Exception $e) {
-            getErrorMessage($e->getCode());
-
-            return back();
-        }
-    }
-
-    /**
-     * Update config file with likes or followers
-     * @param  string $type
-     * @param  integer $nr
-     * @return void
-     */
-    private function updateStats($type, $nr)
-    {
-        if ($type == 'twitter') {
-
-            $config = Configuration::first();
-            $config->twitter_followers = $nr;
-            $config->save();
-
-        } else if ($type == 'facebook') {
-
-            $config = Configuration::first();
-            $config->facebook_likes = $nr;
-            $config->save();
-        }
-    }
+    // /**
+    //  * Update config file with likes or followers
+    //  * @param  string $type
+    //  * @param  integer $nr
+    //  * @return void
+    //  */
+    // private function updateStats($type, $nr)
+    // {
+    //     if ($type == 'twitter') {
+    //
+    //         $config = Configuration::first();
+    //         $config->twitter_followers = $nr;
+    //         $config->save();
+    //
+    //     } else if ($type == 'facebook') {
+    //
+    //         $config = Configuration::first();
+    //         $config->facebook_likes = $nr;
+    //         $config->save();
+    //     }
+    // }
 
 
     private function lastUpdate()

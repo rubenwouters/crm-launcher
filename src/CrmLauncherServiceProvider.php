@@ -36,7 +36,7 @@ class CrmLauncherServiceProvider extends ServiceProvider
         if (! $this->app->routesAreCached()) {
             require __DIR__.'/routes.php';
         }
-
+        //
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'crm-launcher');
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'crm-launcher');
         $this->registerCommands();
@@ -94,6 +94,7 @@ class CrmLauncherServiceProvider extends ServiceProvider
             'Rubenwouters\CrmLauncher\Commands\MigrateDatabase',
             'Rubenwouters\CrmLauncher\Commands\GrantAccess',
             'Rubenwouters\CrmLauncher\Commands\UpdateCases',
+            'Rubenwouters\CrmLauncher\Commands\UpdatePublishmentStats',
         ]);
     }
 

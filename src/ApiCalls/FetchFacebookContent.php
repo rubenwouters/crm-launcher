@@ -3,6 +3,8 @@
 namespace Rubenwouters\CrmLauncher\ApiCalls;
 
 use Rubenwouters\CrmLauncher\Models\Configuration;
+use Rubenwouters\CrmLauncher\Updates\UpdateStatistics;
+use Session;
 
 class FetchFacebookContent {
 
@@ -13,12 +15,62 @@ class FetchFacebookContent {
     protected $contact;
 
     /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Update\UpdateStatistics
+     */
+    protected $stats;
+
+    /**
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      */
-    public function __construct(Configuration $config)
+    public function __construct(Configuration $config, UpdateStatistics $stats)
     {
         $this->config = $config;
+        $this->stats = $stats;
     }
+
+    /**
+     * Fetch Facebook posts
+     * @param  integer $page
+     * @return array
+     */
+    public function fetchFbStats($post)
+    {
+        $fb = initFb();
+        $token = Configuration::FbAccessToken();
+
+        try {
+            $object = $fb->get('/' . $post->fb_post_id . '?fields=shares,likes.summary(true)', $token);
+
+            return json_decode($object->getBody());
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+
+            return back();
+        }
+    }
+
+    // /**
+    //  * Get Facebook page likes
+    //  * @return integer
+    //  */
+    // public function fetchLikes()
+    // {
+    //     try {
+    //         $fb = initFb();
+    //         $token = Configuration::FbAccessToken();
+    //         $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
+    //         $count = json_decode($count->getBody(), true);
+    //         $this->stats->updateStats('facebook', $count['fan_count']);
+    //
+    //         return $count['fan_count'];
+    //
+    //     } catch (Exception $e) {
+    //         getErrorMessage($e->getCode());
+    //
+    //         return back();
+    //     }
+    // }
 
     /**
      * Fetch posts from Facebook
@@ -92,10 +144,9 @@ class FetchFacebookContent {
         $token = Configuration::FbAccessToken();
 
         try {
-            if ($newest) {
-                $comments = $fb->get('/' . $message->fb_post_id . '/comments?fields=from,message,created_time,count,comments,attachment', $token);
-                return json_decode($comments->getBody());
-            }
+            $comments = $fb->get('/' . $message->fb_post_id . '/comments?fields=from,message,created_time,count,comments,attachment', $token);
+
+            return json_decode($comments->getBody());
         } catch (Exception $e) {
             if ($e->getCode() != 100) {
                 getErrorMessage($e->getCode());
@@ -116,10 +167,8 @@ class FetchFacebookContent {
         $fb = initFb();
 
         try {
-            if ($newest) {
-                $comments = $fb->get('/' . $postId . '/comments?fields=from,message,created_time,count,comments,attachment', $token);
-                return json_decode($comments->getBody());
-            }
+            $comments = $fb->get('/' . $postId . '/comments?fields=from,message,created_time,count,comments,attachment', $token);
+            return json_decode($comments->getBody());
         } catch (Exception $e) {
             if ($e->getCode() != 100) {
                 getErrorMessage($e->getCode());

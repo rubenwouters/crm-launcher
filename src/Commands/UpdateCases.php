@@ -23,6 +23,11 @@ class UpdateCases extends Command
      */
     protected $description = 'Update cases';
 
+    /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Log
+     */
+    protected $log;
 
     /**
      * Contact implementation
@@ -35,11 +40,11 @@ class UpdateCases extends Command
      *
      * @return void
      */
-    public function __construct(UpdateAllCases $update, Log $log)
+    public function __construct(Log $log, UpdateAllCases $update)
     {
         parent::__construct();
-        $this->update = $update;
         $this->log = $log;
+        $this->update = $update;
     }
 
     /**

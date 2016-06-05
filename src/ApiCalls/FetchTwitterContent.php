@@ -22,13 +22,34 @@ class FetchTwitterContent {
     }
 
     /**
+     * Fetch user's tweets
+     * @param  integer $page
+     * @return array
+     */
+    public function fetchTwitterStats()
+    {
+        $client = initTwitter();
+        $twitterId = Configuration::twitterId();
+
+        try {
+            $tweets = $client->get('statuses/user_timeline.json?user_id=' . $twitterId);
+
+            return json_decode($tweets->getBody(), true);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+
+            return back();
+        }
+    }
+
+    /**
      * Fetch all mentions
      * @param  string $type
      * @return array
      */
-    public function fetchMentions($type)
+    public function fetchMentions()
     {
-        $latestMentionId = latestMentionId($type);
+        $latestMentionId = latestMentionId();
 
         try {
             $client = initTwitter();

@@ -202,19 +202,18 @@ function getProfilePicture($id)
  * Gets latest inserted mention id (Twitter).
  * @return id
  */
-function latestMentionId($type)
+function latestMentionId()
 {
-    if ($type == 'message' && Message::where('tweet_id', '!=', '')->exists()) {
-        $tweetIdMessage = Message::latestMentionId();
+    $messageId = $reactionId = false;
 
-        return $tweetIdMessage;
-    } else if ($type == 'reaction' && Reaction::where('tweet_id', '!=', '')->exists()) {
-        $tweetIdReaction = Reaction::latestMentionId();
-
-        return $tweetIdReaction;
+    if (Message::where('tweet_id', '!=', '')->exists()) {
+        $messageId = Message::latestMentionId();
+    }
+    if (Reaction::where('tweet_id', '!=', '')->exists()) {
+        $reactionId = Reaction::latestMentionId();
     }
 
-    return false;
+    return max($messageId, $reactionId);
 }
 
 /**
@@ -236,18 +235,16 @@ function latestDirect()
  * Get latest comment date (Facebook)
  * @return datetime
  */
-function latestCommentDate($type)
+function latestCommentDate()
 {
-    if ($type == 'message' && Message::where('fb_reply_id', '!=', '')->exists()) {
+    $messageId = $reactionId = false;
 
-        return Message::where('fb_reply_id', '!=', '')
-            ->orderBy('fb_post_id', 'DESC')
-            ->first()->post_date;
-    } else if ($type == 'reaction' && Reaction::where('fb_post_id', '!=', '')->exists()) {
-
-        return Reaction::where('fb_post_id', '!=', '')
-            ->orderBy('fb_post_id', 'DESC')
-            ->first()->post_date;
+    if (Message::where('fb_reply_id', '!=', '')->exists()) {
+        $messageId =  Message::where('fb_reply_id', '!=', '')->orderBy('fb_post_id', 'DESC')->first()->post_date;
     }
-    return Carbon::today();
+    if (Reaction::where('fb_post_id', '!=', '')->exists()) {
+        $reactionId = Reaction::where('fb_post_id', '!=', '')->orderBy('fb_post_id', 'DESC')->first()->post_date;
+    }
+
+    return max($messageId, $reactionId);
 }

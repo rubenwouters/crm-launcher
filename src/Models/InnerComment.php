@@ -43,16 +43,18 @@ class InnerComment extends Model
     }
 
 
-    public function scopeLatestInnerCommentDate($query, $type)
+    public function scopeLatestInnerCommentDate($query)
     {
-        if ($type == 'message') {
-            if ($query->where('reaction_id', '0')->exists()) {
-                return $query->orderBy('id', 'DESC')->where('reaction_id', '0')->first()->post_date;
-            }
-        } else {
-            return $query->orderBy('id', 'DESC')->where('reaction_id', '!=', '0')->first()->post_date;
+        $messageId = $reactionId = false;
+
+        if (InnerComment::where('reaction_id', '0')->exists()) {
+            $messageId = InnerComment::orderBy('post_date', 'DESC')->where('reaction_id', '0')->first()->post_date;
         }
 
-        return Carbon::today();
+        if (InnerComment::where('reaction_id', '!=', '0')->exists()) {
+            $reactionId = InnerComment::orderBy('post_date', 'DESC')->where('reaction_id', '!=', '0')->first()->post_date;
+        }
+
+        return max($messageId, $reactionId);
     }
 }
