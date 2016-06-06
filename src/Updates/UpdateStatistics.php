@@ -5,6 +5,7 @@ namespace Rubenwouters\CrmLauncher\Updates;
 use Rubenwouters\CrmLauncher\Models\Log;
 use Rubenwouters\CrmLauncher\Models\Contact;
 use Rubenwouters\CrmLauncher\Models\Publishment;
+use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 
@@ -93,26 +94,29 @@ class UpdateStatistics {
         }
     }
 
-    // /**
-    //  * Update config file with likes or followers
-    //  * @param  string $type
-    //  * @param  integer $nr
-    //  * @return void
-    //  */
-    // public function updateStats($type, $nr)
-    // {
-    //     if ($type == 'twitter') {
-    //
-    //         $config = Configuration::first();
-    //         $config->twitter_followers = $nr;
-    //         $config->save();
-    //
-    //     } else if ($type == 'facebook') {
-    //
-    //         $config = Configuration::first();
-    //         $config->facebook_likes = $nr;
-    //         $config->save();
-    //     }
-    // }
+    /**
+     * Update config file with likes
+     * @return void
+     */
+    public function updateFacebookDashboardStats()
+    {
+        $likes = $this->facebookContent->fetchLikes();
 
+        $config = Configuration::first();
+        $config->facebook_likes = $likes['fan_count'];
+        $config->save();
+    }
+
+    /**
+     * Update config file with followers
+     * @return void
+     */
+    public function updateTwitterDashboardStats()
+    {
+        $followers = $this->twitterContent->fetchFollowers();
+
+        $config = Configuration::first();
+        $config->twitter_followers = $followers['followers_count'];
+        $config->save();
+    }
 }

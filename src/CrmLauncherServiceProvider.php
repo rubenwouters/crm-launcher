@@ -4,6 +4,14 @@ namespace Rubenwouters\CrmLauncher;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
+use Rubenwouters\CrmLauncher\Updates\UpdateStatistics;
+use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
+use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
+use Rubenwouters\CrmLauncher\Models\Contact;
+use Rubenwouters\CrmLauncher\Models\CaseOverview;
+use Rubenwouters\CrmLauncher\Models\Configuration;
+use Rubenwouters\CrmLauncher\Models\Reaction;
+use Rubenwouters\CrmLauncher\Models\Log;
 
 
 class CrmLauncherServiceProvider extends ServiceProvider
@@ -36,11 +44,11 @@ class CrmLauncherServiceProvider extends ServiceProvider
         if (! $this->app->routesAreCached()) {
             require __DIR__.'/routes.php';
         }
-        //
+
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'crm-launcher');
         $this->loadTranslationsFrom(__DIR__.'/../lang', 'crm-launcher');
-        $this->registerCommands();
         $this->publish();
+        $this->registerCommands();
     }
 
     /**
@@ -95,6 +103,7 @@ class CrmLauncherServiceProvider extends ServiceProvider
             'Rubenwouters\CrmLauncher\Commands\GrantAccess',
             'Rubenwouters\CrmLauncher\Commands\UpdateCases',
             'Rubenwouters\CrmLauncher\Commands\UpdatePublishmentStats',
+            'Rubenwouters\CrmLauncher\Commands\UpdateDashboardStats',
         ]);
     }
 

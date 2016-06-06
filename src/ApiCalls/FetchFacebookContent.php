@@ -3,7 +3,7 @@
 namespace Rubenwouters\CrmLauncher\ApiCalls;
 
 use Rubenwouters\CrmLauncher\Models\Configuration;
-use Rubenwouters\CrmLauncher\Updates\UpdateStatistics;
+// use Rubenwouters\CrmLauncher\Updates\UpdateStatistics;
 use Session;
 
 class FetchFacebookContent {
@@ -18,15 +18,15 @@ class FetchFacebookContent {
      * Contact implementation
      * @var Rubenwouters\CrmLauncher\Update\UpdateStatistics
      */
-    protected $stats;
+    // protected $stats;
 
     /**
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      */
-    public function __construct(Configuration $config, UpdateStatistics $stats)
+    public function __construct(Configuration $config)
     {
         $this->config = $config;
-        $this->stats = $stats;
+        // $this->stats = $stats;
     }
 
     /**
@@ -50,27 +50,24 @@ class FetchFacebookContent {
         }
     }
 
-    // /**
-    //  * Get Facebook page likes
-    //  * @return integer
-    //  */
-    // public function fetchLikes()
-    // {
-    //     try {
-    //         $fb = initFb();
-    //         $token = Configuration::FbAccessToken();
-    //         $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
-    //         $count = json_decode($count->getBody(), true);
-    //         $this->stats->updateStats('facebook', $count['fan_count']);
-    //
-    //         return $count['fan_count'];
-    //
-    //     } catch (Exception $e) {
-    //         getErrorMessage($e->getCode());
-    //
-    //         return back();
-    //     }
-    // }
+    /**
+     * Get Facebook page likes
+     * @return integer
+     */
+    public function fetchLikes()
+    {
+        try {
+            $fb = initFb();
+            $token = Configuration::FbAccessToken();
+            $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
+
+            return json_decode($count->getBody(), true);
+        } catch (Exception $e) {
+            getErrorMessage($e->getCode());
+
+            return back();
+        }
+    }
 
     /**
      * Fetch posts from Facebook

@@ -51,21 +51,6 @@ class DashboardController extends Controller
             return view('crm-launcher::dashboard.facebook', $data);
         }
 
-        $config = Configuration::first();
-
-        // if ($config->valid_credentials && ($this->lastUpdate() > 900 || !$this->lastUpdate())) {
-        //
-        //     if (isFacebookLinked()) {
-        //         $this->fetchLikes();
-        //     }
-        //
-        //     if (isTwitterLinked()) {
-        //         $this->fetchFollowers();
-        //     }
-        //
-        //     $this->log->updateLog('dashboard_update');
-        // }
-
         $data = [
             'newCases' => CaseOverview::newCases(),
             'openCases' => CaseOverview::openCases(),
@@ -186,75 +171,6 @@ class DashboardController extends Controller
     {
         return count(Answer::TodaysAnswers());
     }
-
-    /**
-     * Get number of followers
-     * @return integer
-     */
-    private function fetchFollowers()
-    {
-        try {
-            $client = initTwitter();
-            $pageId = Configuration::TwitterId();
-            $lookup = $client->get('users/show/followers_count.json?user_id=' . $pageId);
-            $lookup = json_decode($lookup->getBody(), true);
-
-            $this->updateStats('twitter', $lookup['followers_count']);
-
-            return $lookup['followers_count'];
-
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            getErrorMessage($e->getResponse()->getStatusCode());
-
-            return back();
-        }
-    }
-
-    // /**
-    //  * Get Facebook page likes
-    //  * @return integer
-    //  */
-    // private function fetchLikes()
-    // {
-    //     try {
-    //         $fb = initFb();
-    //         $token = Configuration::FbAccessToken();
-    //         $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
-    //         $count = json_decode($count->getBody(), true);
-    //
-    //         $this->updateStats('facebook', $count['fan_count']);
-    //
-    //         return $count['fan_count'];
-    //
-    //     } catch (Exception $e) {
-    //         getErrorMessage($e->getCode());
-    //
-    //         return back();
-    //     }
-    // }
-
-    // /**
-    //  * Update config file with likes or followers
-    //  * @param  string $type
-    //  * @param  integer $nr
-    //  * @return void
-    //  */
-    // private function updateStats($type, $nr)
-    // {
-    //     if ($type == 'twitter') {
-    //
-    //         $config = Configuration::first();
-    //         $config->twitter_followers = $nr;
-    //         $config->save();
-    //
-    //     } else if ($type == 'facebook') {
-    //
-    //         $config = Configuration::first();
-    //         $config->facebook_likes = $nr;
-    //         $config->save();
-    //     }
-    // }
-
 
     private function lastUpdate()
     {

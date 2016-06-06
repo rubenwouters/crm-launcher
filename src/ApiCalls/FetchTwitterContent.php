@@ -22,6 +22,25 @@ class FetchTwitterContent {
     }
 
     /**
+     * Get number of followers
+     * @return integer
+     */
+    public function fetchFollowers()
+    {
+        try {
+            $client = initTwitter();
+            $pageId = Configuration::TwitterId();
+            $lookup = $client->get('users/show/followers_count.json?user_id=' . $pageId);
+
+            return json_decode($lookup->getBody(), true);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+
+            return back();
+        }
+    }
+
+    /**
      * Fetch user's tweets
      * @param  integer $page
      * @return array

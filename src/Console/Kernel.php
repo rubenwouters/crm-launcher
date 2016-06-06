@@ -18,10 +18,11 @@ class Kernel extends ConsoleKernel
     {
         parent::schedule($schedule);
 
-        $schedule->command('crm-launcher:updateCases')->everyMinute()->sendOutputTo(storage_path('test'))->when(function () {
+        $schedule->command('crm-launcher:updateCases')->everyMinute()->when(function () {
             return Message::exists();
         });
 
+        $schedule->command('crm-launcher:updateDashboardStats')->everyFiveMinutes();
         $schedule->command('crm-launcher:updatePublishmentStats')->everyFiveMinutes();
     }
 }
