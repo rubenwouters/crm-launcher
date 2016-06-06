@@ -1,0 +1,32 @@
+header{
+    position: relative;
+    height: auto;
+    background-color: $header-backgroundcolor;
+    text-align: center;
+    color: white;
+
+    a{
+        color: white;
+    }
+    a:hover{
+        color: white;
+    }
+
+    .title{
+        text-transform: uppercase;
+        text-align: center;
+        font-weight: 600;
+        font-size: 3.4em;
+        line-height: 125px;
+        margin-top: 0;
+        margin-bottom: 0;
+    }
+
+    .responsive-menu{
+        position: absolute;
+        left: 40px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 2em;
+    }
+}

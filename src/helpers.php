@@ -240,11 +240,12 @@ function latestCommentDate()
     $messageId = $reactionId = false;
 
     if (Message::where('fb_reply_id', '!=', '')->exists()) {
-        $messageId =  Message::where('fb_reply_id', '!=', '')->orderBy('fb_post_id', 'DESC')->first()->post_date;
+        $messageId =  Message::where('fb_reply_id', '!=', '')->orderBy('post_date', 'DESC')->first()->post_date;
     }
     if (Reaction::where('fb_post_id', '!=', '')->exists()) {
-        $reactionId = Reaction::where('fb_post_id', '!=', '')->orderBy('fb_post_id', 'DESC')->first()->post_date;
+        $reactionId = Reaction::where('fb_post_id', '!=', '')->orderBy('post_date', 'DESC')->first()->post_date;
     }
 
+    var_dump($messageId, $reactionId, max($messageId, $reactionId));
     return max($messageId, $reactionId);
 }

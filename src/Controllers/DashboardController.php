@@ -87,8 +87,6 @@ class DashboardController extends Controller
         return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
     }
 
-
-
     /**
      * Gets average wait time
      * @return integer
@@ -112,7 +110,6 @@ class DashboardController extends Controller
         }
 
         if (count($arTime) != 0) {
-
             return round(array_sum($arTime)/count($arTime)/60);
         }
 

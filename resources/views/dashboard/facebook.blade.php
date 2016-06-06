@@ -54,12 +54,12 @@
                     <div class="col-md-4">
                         <h2>Go.</h2>
 
-                        <div class="go-btn @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! $validTwitterSettings)) disabled @endif">
+                        <div class="go-btn @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! $validTwitterSettings) || (! isFbEnvFilledOut() && ! isTwitterEnvFilledOut())) disabled @endif">
                             <a href="/crm/launch">Launch</a>
                         </div>
 
                         <h3 class="launch">
-                            @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! $validTwitterSettings))
+                            @if((isFbEnvFilledOut() && ! hasFbPermissions()) || (isTwitterEnvFilledOut() && ! $validTwitterSettings) || (! isFbEnvFilledOut() && ! isTwitterEnvFilledOut()))
                                 Houston, we've got a problem.
                             @else
                                 Your customers will love you.

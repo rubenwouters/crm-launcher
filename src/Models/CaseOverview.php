@@ -59,6 +59,15 @@ class CaseOverview extends Model
     }
 
     /**
+     * Get all cases (new, open and closed)
+     * @return collection
+     */
+    public function scopeVisibleCases($query)
+    {
+        return $query->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(12);
+    }
+
+    /**
      * Get private Facebook messages from specific contact
      * @return collection
      */

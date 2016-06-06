@@ -85,7 +85,7 @@ class CasesController extends Controller
             $this->initIds();
         }
 
-        $cases = CaseOverview::AllCases();
+        $cases = CaseOverview::visibleCases();
 
         return view('crm-launcher::cases.index')->with('cases', $cases);
     }
@@ -411,7 +411,7 @@ class CasesController extends Controller
                 $arActive[0] = 'my_cases';
             }
         } else {
-            $cases = $cases->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC')->paginate(12);
+            $cases = $cases->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(12);
         }
 
         return $cases;

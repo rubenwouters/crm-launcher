@@ -124,7 +124,6 @@ class UpdateAllCases {
     public function collectMentions()
     {
         $mentions = array_reverse($this->twitterContent->fetchMentions());
-        // $mentions = array_reverse($this->twitterContent->fetchMentions('message'));
 
         foreach ($mentions as $key => $mention) {
 
@@ -168,6 +167,7 @@ class UpdateAllCases {
             $message->save();
 
             Media::handleMedia($message->id, $mention, 'twitter');
+            $this->updateCase($case->id, 'twitter', $mention['id_str']);
         }
     }
 
@@ -224,6 +224,7 @@ class UpdateAllCases {
             $message->save();
 
             Media::handleMedia($message->id, $direct, 'twitter');
+            $this->updateCase($case->id, 'twitter', $direct['id_str']);
         }
     }
 
@@ -287,7 +288,7 @@ class UpdateAllCases {
                     ) {
 
                         if (Contact::FindByFbId($comment->from->id)->exists()) {
-                            $contact = Contact::FindByFbId($comment->from->id)->first();
+                            $contact = Contact::where('facebook_id', $comment->from->id)->first();
                         } else {
                             $contact = $this->contact->createContact('facebook', $comment);
                         }
@@ -307,11 +308,31 @@ class UpdateAllCases {
                             $msg->save();
 
                             Media::handleMedia($msg->id, $comment, 'facebook_comment');
+                            $this->updateCase($message->case_id, 'facebook', $comment->id);
                         }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Update case with newest Facebook or Tweet id
+     * @param  integer $caseId
+     * @param  integer $messageId
+     * @return void
+     */
+    private function updateCase($caseId, $type, $messageId)
+    {
+        $case = CaseOverview::find($caseId);
+
+        if ($type == 'twitter') {
+            $case->latest_tweet_id = $messageId;
+        } else {
+            $case->latest_fb_id = $messageId;
+        }
+
+        $case->save();
     }
 
     /**
@@ -361,7 +382,7 @@ class UpdateAllCases {
                     if (! Contact::FindByFbId($comment->from->id)->exists()) {
                         $contact = $this->contact->createContact('facebook', $comment);
                     } else {
-                        $contact = Contact::FindByFbId($comment->from->id)->first();
+                        $contact = Contact::where('facebook_id', $comment->from->id)->first();
                     }
 
                     $innerComment = new InnerComment();

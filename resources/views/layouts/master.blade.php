@@ -6,11 +6,11 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" media="screen">
         <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,900,600,300,200' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.1/css/font-awesome.min.css">
-        <link rel="stylesheet" href="{{asset("bower_components/unslider/dist/css/unslider.css")}}" media="screen">
-        <link rel="stylesheet" href="{{asset("bower_components/unslider/dist/css/unslider-dots.css")}}" media="screen">
-        <link rel="stylesheet" href="{{asset("bower_components/featherlight/release/featherlight.min.css")}}" media="screen">
-        <link rel="stylesheet" href="{{asset("bower_components/featherlight/release/featherlight.gallery.min.css")}}" media="screen">
-        <link rel="stylesheet" href="{{asset("css/styles.min.css")}}" media="screen">
+        <link rel="stylesheet" href="{{asset("crm-launcher/bower_components/unslider/dist/css/unslider.css")}}" media="screen">
+        <link rel="stylesheet" href="{{asset("crm-launcher/bower_components/unslider/dist/css/unslider-dots.css")}}" media="screen">
+        <link rel="stylesheet" href="{{asset("crm-launcher/bower_components/featherlight/release/featherlight.min.css")}}" media="screen">
+        <link rel="stylesheet" href="{{asset("crm-launcher/bower_components/featherlight/release/featherlight.gallery.min.css")}}" media="screen">
+        <link rel="stylesheet" href="{{asset("crm-launcher/css/styles.min.css")}}" media="screen">
     </head>
 
     <body>
@@ -58,6 +58,6 @@
         <script src="{{asset("crm-launcher/bower_components/featherlight/release/featherlight.min.js")}}" charset="utf-8"></script>
         <script src="{{asset("crm-launcher/bower_components/featherlight/release/featherlight.gallery.min.js")}}" charset="utf-8"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" charset="utf-8"></script>
-        <script src="{{asset("js/app.min.js")}}" charset="utf-8"></script>
+        <script src="{{asset("crm-launcher/js/app.min.js")}}" charset="utf-8"></script>
     </body>
 </html>
