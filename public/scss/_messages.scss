@@ -118,7 +118,7 @@
         transition: all .3s;
 
         a{
-            color: white;
+            color: $accent-color;
         }
     }
 
@@ -132,13 +132,37 @@
         text-decoration: none;
     }
 
+    a.reply_own, .delete-answer a, .answer .reply, .answer .fa-reply{
+        color: white !important;
+    }
+
+    .fa-reply{
+        padding-left: 5px;
+
+    }
+
+    .delete-answer a {
+        padding-right: 5px;
+    }
+
     .inner-comments, .inner-comments-answers{
-        display: none;
+        display: none;min-height: 0;
+    }
+
+    .inner-comments-answers{
+        clear: both;
+        border: 1px solid transparent;
+    }
+
+
+    .inner.message{
+
     }
 
     .more, .more-answer{
         text-align: right;
         cursor: pointer;
+        padding-bottom: 10px;
     }
 
     .media-item{
@@ -154,6 +178,10 @@
             background-size: cover;
             background-position: center;
         }
+    }
+
+    .msg{
+        padding-bottom: 10px;
     }
 
     .answer_block{
@@ -194,4 +222,11 @@
 input[disabled='disabled']{
     transition: all .3s;
     background-color: lighten($header-backgroundcolor, 20%) !important;
+}
+
+.contact-name{
+    margin-top: 0px;
+    font-size: 1em;
+    font-weight: 600;
+    text-transform: uppercase;
 }

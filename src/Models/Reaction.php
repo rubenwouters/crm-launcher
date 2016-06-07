@@ -3,6 +3,8 @@
 namespace Rubenwouters\CrmLauncher\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Auth;
+use Carbon\Carbon;
 
 class Reaction extends Model
 {

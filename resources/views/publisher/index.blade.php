@@ -10,18 +10,18 @@
 @section('content')
 
     <div class="container">
+        @if (count($errors) > 0)
+            <div class="error-message"><span>{{ $errors->first() }}</span></div>
+        @endif
         <div class="row publish">
 
-            @if (count($errors) > 0)
-                <div class="error-message"><span>{{ $errors->first() }}</span></div>
-            @endif
-
+            <h2 class="title">New publishment</h2>
             <div class="col-xs-12 col-md-6 col-md-offset-3">
                 {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\PublishController@publish'))) !!}
 
                     <div class="col-lg-12 media-choice">
                         @if (isTwitterLinked())
-                            <div class="col-lg-12">
+                            <div class="col-xs-6 twitter-btn">
                                 {!! Form::checkbox('social[]', 'twitter', false, ['id' => 'twitter']) !!}
                                 <label class="twitter" for="twitter">
                                     <i class="fa fa-twitter" aria-hidden="true"></i> Twitter
@@ -30,7 +30,7 @@
                         @endif
 
                         @if (isFacebookLinked())
-                            <div class="col-lg-12">
+                            <div class="col-xs-6 fb-btn">
                                 {!! Form::checkbox('social[]', 'facebook', false, ['id' => 'facebook']) !!}
                                 <label class="facebook" for='facebook'>
                                     <i class="fa fa-facebook" aria-hidden="true"></i> Facebook
@@ -51,12 +51,19 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-xs-12 publish-now">
+                <a href="#!">Add new publishment <i class="fa fa-angle-down" aria-hidden="true"></i></a>
+            </div>
+        </div>
+
         <div class="row publishments">
             <div class="col-md-6 col-md-offset-3">
+                <h2 class="title">Your publishments</h2>
                 @foreach($publishments as $key => $publishment)
                     <a href="/crm/publisher/{{$publishment->id}}">
                         <div class="row">
-                            <div class="date">{{ date('l d M Y', strtotime($publishment->created_at)) }}</div>
+                            {{-- <div class="date">{{ date('l d M Y', strtotime($publishment->created_at)) }}</div> --}}
                             <div class="col-md-12 published-content">
                                 {{ rawurldecode($publishment->content) }}
                                 <div class="col-xs-12 icons">

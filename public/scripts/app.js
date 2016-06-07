@@ -49,8 +49,8 @@ $(document).ready(function(){
 	});
 
 	$('.reply').click(function(){
-		console.log("test");
 		var trigger = $(this).attr('answerTrigger');
+		$('#' + trigger).slideToggle();
 		$('.answer_' + trigger ).slideToggle('fast', function(){
 			if($('.screen-name').length > 0) {
 				$('textarea.fb.' + trigger).text('@' + $('.screen-name.' + trigger).html());
@@ -58,20 +58,25 @@ $(document).ready(function(){
 			$('textarea.' + trigger).focus();
 		});
 
-		console.log($(this).attr('screenName'), $(this));
 		if($(this).attr('screenName')){
-			$('textarea[name=answer]').text('@' + $(this).attr('screenName') + ' ');
+			$('textarea[name=answer][class=maxed]').text('@' + $(this).attr('screenName') + ' ');
+			scrollToAnchor($('textarea[name=answer]'));
+			$('textarea[name=answer][class=maxed]').focus();
 
+		} else {
+			scrollToAnchor(this);
 		}
 		$('input[name="in_reply_to"]').attr('value', $(this).attr('replyId'));
 	});
 
 	$('.reply_post').click(function(){
 		var trigger = $(this).attr('answerTrigger');
+		$('#' + trigger).slideToggle();
 		$('.answer_post_' + trigger ).slideToggle('fast', function(){
 			$('textarea.' + trigger).focus();
 		});
 		$('input[name="in_reply_to"]').attr('value', $(this).attr('replyId'));
+		scrollToAnchor(this);
 	});
 
 	$('.reply_own').click(function(){
@@ -115,7 +120,7 @@ $(document).ready(function(){
 			$('.add-summary span').text('Cancel summary');
 		}
 		$('.add-summary-block').slideToggle();
-		 scrollToAnchor('.add-summary-block .submit');
+		 scrollToAnchor('.summary');
 	});
 
 	$('.more-summaries').click(function(){
@@ -167,18 +172,16 @@ $(document).ready(function(){
 		$('label[for="' + operator + '"]').toggleClass('checked');
 	});
 
-	$('.answer').click(function(){
-		var post_date = $(this).parent().find('.answer-post-date');
-		var visible;
+	$('.publish-now a').click(function(){
 
-		if(post_date.css('opacity') == 0) {
-			visible = 0;
-		} else {
-			visible = 1;
+		if($('.publish').is(':visible')){
+			$(this).html('Add new publishment <i class="fa fa-angle-down" aria-hidden="true"></i>');
+		}
+		else{
+			$(this).html('Cancel publishment <i class="fa fa-angle-up" aria-hidden="true"></i>');
 		}
 
-		$(this).parent().find('.answer-post-date').animate({'opacity': 1 - visible}, 'fast');
-		console.log($(this).find('.answer-post-date'));
+		$('.publish').slideToggle();
 	});
 });
 

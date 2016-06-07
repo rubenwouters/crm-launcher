@@ -10,8 +10,11 @@
 @section('content')
 
     <div class="container">
-
+        @if (count($errors) > 0)
+            <div class="error-message"><span>{{ $errors->first() }}</span></div>
+        @endif
         <div class="row publishments detail">
+
             <div class="col-md-6 col-md-offset-3">
                 <div class="date">{{ date('l d M Y', strtotime($publishment->created_at)) }}</div>
                 <div class="col-md-12 published-content">
@@ -40,7 +43,7 @@
 
 
         <div class="row">
-            <div class="@if(isTwitterLinked() && ! isFacebookLinked()) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation">
+            <div class="@if(!count($tweets)) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation detail">
                 @if(count($tweets) > 0)
                     @foreach($tweets->sortBy('post_date') as $key => $message)
 
@@ -48,7 +51,14 @@
                             <div class="col-xs-12 col-md-12 bubble @if($message->user_id == 0) answer @endif">
                                 @if (count($message->media))
                                     @foreach($message->media as $nr => $pic)
+                                        <div class="reply-inner">
+                                            <span class="post-date">{{ date('d F, H:i', strtotime($message->post_date)) }}</span>
+                                            <a class="reply"  replyId="{{$message->tweet_id}}" screenName="{{$message->screen_name}}" href="#!">
+                                                <i class="fa fa-reply" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
                                         <div class="media-item">
+                                            <h4 class="contact-name">{{ $message->screen_name }}</h4>
                                             {{ $message->message }}
                                             <a class="gallery" href="#" data-featherlight="{{$pic->url}}">
                                                 <img style="background-image: url({{$pic->url}});" src="" alt="" />
@@ -57,22 +67,15 @@
                                     @endforeach
                                 @else
                                     <div class="reply-inner">
-                                        <span class="post-date">{{ date(' d/m/Y, H:i', strtotime($message->post_date)) }}</span>
-                                        <a class="reply {{$key}}" answerTrigger="{{$key}}" replyId="{{$message->tweet_id}}" href="#!">
+                                        <span class="post-date">{{ date('d F, H:i', strtotime($message->post_date)) }}</span>
+                                        <a class="reply" answerTrigger="{{$key}}" replyId="{{$message->tweet_id}}" screenName="{{$message->screen_name}}" href="#!">
                                             <i class="fa fa-reply" aria-hidden="true"></i>
                                         </a>
                                     </div>
-                                    <h4 class="screen-name {{$key}}">{{$message->screen_name}}</h4>
+
+                                    <h4 class="contact-name">{{ $message->screen_name }}</h4>
                                     {{ $message->message }}
                                 @endif
-                            </div>
-                        </div>
-                        <div class="row answer_block answer_{{$key}}">
-                            <div class="col-xs-12 answer_specific">
-                                {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\PublishController@replyTweet', $publishment->id), 'class' => 'form_' . $key)) !!}
-                                    {!! Form::hidden('in_reply_to', '') !!}
-                                    {!! Form::textarea('answer', null, ['placeholder' => 'Enter your answer', 'class' => 'specific_answer fb ' . $key , 'rows' => 2, 'cols' => 40]) !!}
-                                {!! Form::close() !!}
                             </div>
                         </div>
                     @endforeach
@@ -90,7 +93,7 @@
                 @endif
             </div>
 
-            <div class="@if(! isTwitterLinked() && isFacebookLinked()) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation">
+            <div class="@if(!count($tweets)) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation detail">
                 @if(count($posts) > 0)
                     @foreach($posts as $key => $post)
                         <div class="message">
@@ -98,7 +101,7 @@
                                 @if (count($post->media))
                                     @foreach($post->media as $nr => $pic)
                                         <div class="reply-inner">
-                                            <span class="post-date">{{ date(' d/m/Y, H:i', strtotime($post->post_date)) }}</span>
+                                            <span class="post-date">{{ date('d F, H:i', strtotime($post->post_date)) }}</span>
                                             <a class="reply_post" answerTrigger="{{$key}}" replyId="{{$post->fb_post_id}}" href="#!">
                                                 <i class="fa fa-reply" aria-hidden="true"></i>
                                             </a>
@@ -112,7 +115,7 @@
                                     @endforeach
                                 @else
                                     <div class="reply-inner">
-                                        <span class="post-date">{{ date(' d/m/Y, H:i', strtotime($post->post_date)) }}</span>
+                                        <span class="post-date">{{ date('d F, H:i', strtotime($post->post_date)) }}</span>
                                         <a class="reply_post" answerTrigger="{{$key}}" replyId="{{$post->fb_post_id}}" href="#!">
                                             <i class="fa fa-reply" aria-hidden="true"></i>
                                         </a>
@@ -122,33 +125,37 @@
                             </div>
                         </div>
 
-                        @foreach($post->innercomments as $nr => $comment)
-                            <div class="message inner">
-                                <div class="col-xs-12 col-md-12 bubble @if($comment->user_id != 0) answer @endif">
-                                    @if (count($comment->media))
-                                        @foreach($comment->media as $nr => $pic)
-                                            <div class="reply-inner">
-                                                <span class="post-date">{{ date(' d/m/Y, H:i', strtotime($comment->post_date)) }}</span>
-                                            </div>
-                                            <div class="media-item">
+                        @if(count($post->innercomments))
+                            <div id="{{$key}}" class="inner-comments">
+                                @foreach($post->innercomments as $nr => $comment)
+                                    <div class="inner message">
+                                        <div class="col-xs-12 col-md-12 bubble @if($comment->user_id != 0) answer @endif">
+                                            @if (count($comment->media))
+                                                @foreach($comment->media as $nr => $pic)
+                                                    <div class="reply-inner">
+                                                        <span class="post-date">{{ date('d F, H:i', strtotime($comment->post_date)) }}</span>
+                                                    </div>
+                                                    <div class="media-item">
+                                                        {{ $comment->message }}
+                                                        <a class="gallery" href="#" data-featherlight="{{$pic->url}}">
+                                                            <img style="background-image: url({{$pic->url}});" src="" alt="" />
+                                                        </a>
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <div class="reply-inner">
+                                                    <span class="post-date">{{ date('d F, H:i', strtotime($comment->post_date)) }}</span>
+                                                </div>
                                                 {{ $comment->message }}
-                                                <a class="gallery" href="#" data-featherlight="{{$pic->url}}">
-                                                    <img style="background-image: url({{$pic->url}});" src="" alt="" />
-                                                </a>
-                                            </div>
-                                        @endforeach
-                                    @else
-                                        <div class="reply-inner">
-                                            <span class="post-date">{{ date(' d/m/Y, H:i', strtotime($comment->post_date)) }}</span>
+                                            @endif
                                         </div>
-                                        {{ $comment->message }}
-                                    @endif
-                                </div>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endforeach
-
+                            <div toggle-nr='{{$key}}' class="more">Comments <i class="fa fa-caret-down" aria-hidden="true"></i></div>
+                        @endif
                         <div class="row answer_block answer_post_{{$key}}">
-                            <div class="col-xs-12 answer_specific">
+                            <div class="col-xs-12 answer_specific inner">
                                 {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\PublishController@replyPost', $publishment->id), 'class' => 'form_' . $key)) !!}
                                     {!! Form::hidden('in_reply_to', '') !!}
                                     {!! Form::textarea('answer', null, ['placeholder' => 'Enter your answer', 'class' => 'specific_answer ' .$key , 'rows' => 2, 'cols' => 40]) !!}

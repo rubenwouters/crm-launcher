@@ -58,6 +58,12 @@ function changeFbDateFormat($date)
      return date("Y-m-d H:i:s", strtotime("+0 hours", strtotime($date)));
 }
 
+function filterUrl($message)
+{
+    $pattern = "/[a-zA-Z]*[:\/\/]*[A-Za-z0-9\-_]+\.+[A-Za-z0-9\.\/%&=\?\-_]+/i";
+    return preg_replace($pattern, '', $message);
+}
+
 /**
  * Initializes Facebook connection
  */

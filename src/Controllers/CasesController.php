@@ -106,6 +106,9 @@ class CasesController extends Controller
         if ($keywords && $results) {
             $cases = $results;
         } else {
+            if (! $results) {
+                $searchResult['bool'] = false;
+            }
             $cases = CaseOverview::orderBy('updated_at', 'DESC')->orderBy('id', 'DESC');
         }
 

@@ -86,7 +86,7 @@ class PublishController extends Controller
     public function detail($id)
     {
         $publishment = Publishment::find($id);
-        
+
         $data = [
             'publishment' => $publishment,
             'tweets' => $publishment->reactions()->where('tweet_id', '!=', '')->get(),
@@ -104,6 +104,10 @@ class PublishController extends Controller
      */
     public function replyTweet(Request $request, $id)
     {
+        $this->validate($request, [
+            'answer' => 'required',
+        ]);
+
         $publishment = Publishment::find($id);
 
         if ($request->input('in_reply_to') != "") {
@@ -126,6 +130,10 @@ class PublishController extends Controller
      */
     public function replyPost(Request $request, $id)
     {
+        $this->validate($request, [
+            'answer' => 'required',
+        ]);
+        
         $publishment = Publishment::find($id);
 
         if ($request->input('in_reply_to') != "") {

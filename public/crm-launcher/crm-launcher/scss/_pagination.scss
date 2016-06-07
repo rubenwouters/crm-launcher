@@ -1,0 +1,25 @@
+.pagination-centered{
+    display: block;
+    clear: both;
+    padding-top: 30px;
+    text-align: center;
+
+    a, .disabled span{
+        color: $header-backgroundcolor !important;
+    }
+
+    .disabled span{
+        // color: lighten($header-backgroundcolor, 30%);
+    }
+
+    .active span, .active span:hover{
+        background-color: $header-backgroundcolor;
+        border-color: $header-backgroundcolor;
+    }
+
+
+    li span, li a{
+        border:none !important;
+        padding: 3px 10px;
+    }
+}

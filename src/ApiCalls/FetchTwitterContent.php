@@ -97,7 +97,7 @@ class FetchTwitterContent {
 
         try {
             if ($sinceId != 0) {
-                $response = $client->get('direct_messages.json?since_id=' . $sinceId);
+                $response = $client->get('direct_messages.json?full_text=true&since_id=' . $sinceId);
             } else {
                 $response = $client->get('direct_messages.json?count=1');
             }
@@ -243,6 +243,7 @@ class FetchTwitterContent {
 
             $contact->save();
         } catch (\GuzzleHttp\Exception\ClientException $e) {
+            dd($e);
             getErrorMessage($e->getResponse()->getStatusCode());
             return back();
         }

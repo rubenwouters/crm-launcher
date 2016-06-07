@@ -20,7 +20,7 @@ class CreateMessagesTable extends Migration
             $table->string('fb_conversation_id');
             $table->string('fb_private_id');
             $table->string('message', 500);
-            $table->dateTime('post_date');
+            $table->datetime('post_date');
             $table->timestamps();
         });
     }

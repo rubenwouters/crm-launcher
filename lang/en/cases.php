@@ -14,7 +14,7 @@ return [
     'unfollow' => "Unfollow this user",
 
     'last_helped' => 'Last helped',
-    'last_answer' => 'Last answer on',
+    'last_answer' => 'Last answer',
     'since' => 'Since',
     'first_tweet' => 'First tweet on',
 

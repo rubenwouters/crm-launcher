@@ -49,6 +49,7 @@ $(document).ready(function(){
 	});
 
 	$('.reply').click(function(){
+		console.log("test");
 		var trigger = $(this).attr('answerTrigger');
 		$('.answer_' + trigger ).slideToggle('fast', function(){
 			if($('.screen-name').length > 0) {
@@ -57,9 +58,10 @@ $(document).ready(function(){
 			$('textarea.' + trigger).focus();
 		});
 
-		if($(this).attr('screenName')) {
-			$('textarea[name=answer]').val('@' + $(this).attr('screenName') + ' ');
-			scrollToAnchor('.word-count');
+		console.log($(this).attr('screenName'), $(this));
+		if($(this).attr('screenName')){
+			$('textarea[name=answer]').text('@' + $(this).attr('screenName') + ' ');
+
 		}
 		$('input[name="in_reply_to"]').attr('value', $(this).attr('replyId'));
 	});
@@ -69,7 +71,6 @@ $(document).ready(function(){
 		$('.answer_post_' + trigger ).slideToggle('fast', function(){
 			$('textarea.' + trigger).focus();
 		});
-		console.log($(this).attr('replyId'));
 		$('input[name="in_reply_to"]').attr('value', $(this).attr('replyId'));
 	});
 
@@ -114,7 +115,7 @@ $(document).ready(function(){
 			$('.add-summary span').text('Cancel summary');
 		}
 		$('.add-summary-block').slideToggle();
-		 scrollToAnchor('.summary');
+		 scrollToAnchor('.add-summary-block .submit');
 	});
 
 	$('.more-summaries').click(function(){

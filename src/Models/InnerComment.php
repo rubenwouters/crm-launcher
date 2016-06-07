@@ -42,6 +42,10 @@ class InnerComment extends Model
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Reaction');
     }
 
+    public function user(){
+        return $this->belongsTo('App\User');
+    }
+
 
     public function scopeLatestInnerCommentDate($query)
     {

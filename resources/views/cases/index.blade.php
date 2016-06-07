@@ -47,68 +47,32 @@
 
         @foreach($cases as $key => $case)
             <a href="/crm/case/{{$case->id}}">
-
-                <div class="col-xs-10 col-sm-6 col-md-4 col-lg-3 case-block">
-                    <div class=" col-xs-12 profile-picture" style="background-image:url({{getOriginalImg($case->contact->profile_picture)}});background-size:cover;background-repeat:no-repeat;height: 300px;-webkit-filter:grayscale(50%);)"></div>
-                    <div class=" col-md-12 profile-info">
-                        <div class="row">
-                            <div class="col-xs-11">
-                                <h2>{{$case->contact->name}}</h2>
-                                @if(strpos($case->origin, 'Twitter') !== false)
-                                    <h3>&commat;{{$case->contact->twitter_handle}}</h3>
-                                @endif
-                            </div>
-                            <div class="col-xs-1 case-id">
-                                <h2>#{{$case->id}}</h2>
-                            </div>
+                <div class="col-xs-12 col-sm-6 col-md-4 case-block">
+                    <div class="@if(strpos($case->origin, 'Twitter') !== false) twitter @else facebook @endif message">
+                        <i class="fa @if(strpos($case->origin, 'Twitter') !== false) fa-twitter @else fa-facebook @endif" aria-hidden="true"></i>
+                        <div class="profile-picture visible-lg">
+                            <img src="{{getOriginalImg($case->contact->profile_picture)}}" alt="" />
                         </div>
-
-                        @if($case->status != 0)
-                            <div class="row">
-                                <div class="col-xs-12 helping">
-                                    @if($case->latest_helper)
-                                        {{ trans('crm-launcher::cases.last_helped') }}: {{ $case->latest_helper }}
-                                    @endif
-
-                                </div>
-                                <div class="col-xs-12 last-answer">{{ trans('crm-launcher::cases.last_answer') }} {{ date(' d/m/Y, H:i', strtotime($case->updated_at)) }}u</div>
-                            </div>
-                        @endif
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 profile-info">
+                            <h2>{{$case->contact->name}}</h2>
+                            <h3>
+                                @if(strpos($case->origin, 'Twitter') !== false)
+                                    &commat;{{$case->contact->twitter_handle}} -
+                                    <span class="time-ago">{{ $case->updated_at->diffForHumans() }}</span>
+                                @else
+                                    <span class="time-ago">{{ $case->updated_at->diffForHumans() }}</span>
+                                @endif
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 last-message">
+                            {{ str_limit($case->messages->sortByDesc('id')->first()->message , $limit = 139, $end = '...') }}
+                        </div>
                     </div>
                 </div>
-
-
-                {{-- <div class="col-xs-10 col-sm-6 col-md-4 col-lg-6 case-block">
-                    <div class=" col-md-12 col-lg-3 profile-picture">
-                        <img src="{{ getOriginalImg($case->contact->profile_picture) }}" alt="" />
-                    </div>
-                    <div class=" col-md-12 col-lg-9 profile-info">
-                        <div class="row">
-                            <div class="col-xs-8">
-                                <h2>{{$case->contact->name}}</h2>
-                                @if(strpos($case->origin, 'Twitter') !== false)
-                                    <h3>&commat;{{$case->contact->twitter_handle}}</h3>
-                                @endif
-                            </div>
-                            <div class="col-xs-4 case-id">
-                                <h2>#{{$case->id}}</h2>
-                            </div>
-                        </div>
-
-                        @if($case->status != 0)
-                            <div class="row">
-                                <div class="col-xs-12 helping">
-                                    @if($case->latest_helper)
-                                        {{ trans('crm-launcher::cases.last_helped') }}: {{ $case->latest_helper }}
-                                    @endif
-
-                                </div>
-                                <div class="col-xs-12 last-answer">{{ trans('crm-launcher::cases.last_answer') }} {{ date(' d/m/Y, H:i', strtotime($case->updated_at)) }}u</div>
-                            </div>
-                        @endif
-                    </div>
-                </div> --}}
-
             </a>
         @endforeach
 

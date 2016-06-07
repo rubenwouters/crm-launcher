@@ -18,7 +18,7 @@ class CreateAnswersTable extends Migration
             $table->string('fb_reply_id');
             $table->string('fb_private_id');
             $table->string('answer', 500);
-            $table->dateTime('post_date');
+            $table->datetime('post_date');
             $table->timestamps();
         });
     }

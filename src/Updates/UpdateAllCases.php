@@ -162,7 +162,7 @@ class UpdateAllCases {
 
             $message->contact_id = $contact->id;
             $message->tweet_id = $mention['id_str'];
-            $message->message = $mention['text'];
+            $message->message = filterUrl($mention['text']);
             $message->post_date = $date;
             $message->save();
 
@@ -219,7 +219,7 @@ class UpdateAllCases {
 
             $message->contact_id = $contact->id;
             $message->direct_id = $direct['id_str'];
-            $message->message = $direct['text'];
+            $message->message = filterUrl($direct['text']);
             $message->post_date = $date;
             $message->save();
 

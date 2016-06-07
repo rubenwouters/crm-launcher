@@ -1,0 +1,76 @@
+// Dashboard -> First row of blocks (open, new and closed cases)
+.first-block{
+    text-align: center;
+
+    .number{
+        font-size: 7.875em;
+    }
+
+    .case-type{
+        font-size: 2.5em;
+        text-transform: uppercase;
+    }
+
+    .open-cases, .closed-cases{
+        // background-color: $base-gray;
+        padding: 50px;
+    }
+    .new-cases{
+        background-color: $accent-color;
+        padding: 50px;
+        color: white;
+    }
+}
+
+.second-block{
+    text-align: center;
+
+    .col-lg-3{
+        background-color: $dark-gray;
+
+        // color: white;
+        color: black;
+        padding: 30px;
+    }
+
+    .number{
+        color: $notification-color;
+        font-size: 5.875em;
+    }
+
+    .average-title{
+        text-transform: uppercase;
+    }
+    .average-title, .extra{
+        font-size: 2em;
+    }
+}
+
+.third-block{
+    // height: 250px;
+    line-height: 200px;
+    font-size: 2.5em;
+    text-align: center;
+
+    .twitter i{
+        display: inline-block;
+        border-radius: 50px;
+        padding: 10px;
+        background-color: $twitter-color;
+        color: white;
+        margin-right: 20px;
+    }
+
+    .facebook i{
+        display: inline-block;
+        border-radius: 50px;
+        padding: 10px 17px;
+        background-color: $facebook-color;
+        color: white;
+        margin-right: 20px;
+    }
+
+    .tweets-count, .posts-count{
+        font-weight: 300;
+    }
+}
