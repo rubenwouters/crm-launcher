@@ -10,6 +10,7 @@
 @section('content')
 
     <div class="container">
+
         @if (count($errors) > 0)
             <div class="error-message"><span>{{ $errors->first() }}</span></div>
         @endif
@@ -40,6 +41,14 @@
                 </div>
             </div>
         </div>
+
+        @if(! count($tweets) && ! count($posts))
+            <div class="row">
+                <div class="col-xs-12 no-results">
+                    <h3>No reactions yet.</h3>
+                </div>
+            </div>
+        @endif
 
 
         <div class="row">
@@ -176,7 +185,6 @@
                 @endif
             </div>
         </div>
-
     </div>
 
 @endsection

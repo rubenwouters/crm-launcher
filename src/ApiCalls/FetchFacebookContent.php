@@ -3,22 +3,9 @@
 namespace Rubenwouters\CrmLauncher\ApiCalls;
 
 use Rubenwouters\CrmLauncher\Models\Configuration;
-// use Rubenwouters\CrmLauncher\Updates\UpdateStatistics;
 use Session;
 
 class FetchFacebookContent {
-
-    /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Contact
-     */
-    protected $contact;
-
-    /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Update\UpdateStatistics
-     */
-    // protected $stats;
 
     /**
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
@@ -26,7 +13,6 @@ class FetchFacebookContent {
     public function __construct(Configuration $config)
     {
         $this->config = $config;
-        // $this->stats = $stats;
     }
 
     /**
@@ -37,7 +23,7 @@ class FetchFacebookContent {
     public function fetchFbStats($post)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $object = $fb->get('/' . $post->fb_post_id . '?fields=shares,likes.summary(true)', $token);
@@ -58,7 +44,7 @@ class FetchFacebookContent {
     {
         try {
             $fb = initFb();
-            $token = Configuration::FbAccessToken();
+            $token = $this->config->FbAccessToken();
             $count = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=fan_count', $token);
 
             return json_decode($count->getBody(), true);
@@ -77,7 +63,7 @@ class FetchFacebookContent {
     public function fetchPosts($newest)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             if($newest) {
@@ -99,7 +85,7 @@ class FetchFacebookContent {
     public function fetchPrivateConversations()
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/conversations?fields=id,updated_time', $token);
@@ -118,7 +104,7 @@ class FetchFacebookContent {
     public function fetchPrivateMessages($conversation)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $message = $fb->get('/' . $conversation->id . '/messages?fields=from,message,created_time', $token);
@@ -138,7 +124,7 @@ class FetchFacebookContent {
     public function fetchComments($newest, $message)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $comments = $fb->get('/' . $message->fb_post_id . '/comments?fields=from,message,created_time,count,comments,attachment', $token);
@@ -160,7 +146,7 @@ class FetchFacebookContent {
      */
     public function fetchInnerComments($newest, $postId)
     {
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
         $fb = initFb();
 
         try {
@@ -181,7 +167,7 @@ class FetchFacebookContent {
     public function newestPostId()
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
@@ -199,7 +185,7 @@ class FetchFacebookContent {
     public function newestConversationId()
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $privates = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/conversations?fields=id,updated_time&limit=1', $token);
@@ -218,7 +204,7 @@ class FetchFacebookContent {
     public function publishPost($post)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $publishment = $fb->post('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/feed?&message=' . $post, ['access_token' => $token]);
@@ -239,7 +225,7 @@ class FetchFacebookContent {
     public function answerPost($answer, $messageId)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $reply = $fb->post('/' . $messageId . '/comments?message=' . rawurlencode($answer) , array('access_token' => $token));
@@ -261,7 +247,7 @@ class FetchFacebookContent {
     public function answerPrivate($conversation, $answer)
     {
         $fb = initFb();
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
 
         try {
             $reply = $fb->post('/' . $conversation->fb_conversation_id . '/messages?message=' . rawurlencode($answer) , array('access_token' => $token));
@@ -282,7 +268,7 @@ class FetchFacebookContent {
      */
     function deleteFbPost($post)
     {
-        $token = Configuration::FbAccessToken();
+        $token = $this->config->FbAccessToken();
         $fb = initFb();
 
         try {

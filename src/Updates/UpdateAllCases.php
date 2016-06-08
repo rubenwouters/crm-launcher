@@ -4,7 +4,6 @@ namespace Rubenwouters\CrmLauncher\Updates;
 
 use Datetime;
 use Rubenwouters\CrmLauncher\Models\Contact;
-use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
 use Rubenwouters\CrmLauncher\Models\Publishment;
 use Rubenwouters\CrmLauncher\Models\Message;
@@ -19,51 +18,86 @@ use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 class UpdateAllCases {
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\Models\Contact
      */
     protected $contact;
 
     /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Case
+     * @var Rubenwouters\CrmLauncher\Models\CaseOverview
      */
     protected $case;
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\Models\Reaction
      */
     protected $reaction;
 
     /**
-     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Publishment
+     */
+    protected $publishment;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\Message
+     */
+    protected $message;
+
+    /**
+     * @var Rubenwouters≈\CrmLauncher\Models\Media
+     */
+    protected $media;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\Answer
+     */
+    protected $answer;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\InnerComment
+     */
+    protected $innercomment;
+
+    /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
      */
     protected $twitterContent;
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
      */
     protected $facebookContent;
 
     /**
      * @param Rubenwouters\CrmLauncher\Models\Contact $contact
-     * @param Rubenwouters\CrmLauncher\Models\Case $case
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
+     * @param Rubenwouters\CrmLauncher\Models\CaseOverview $case
+     * @param Rubenwouters\CrmLauncher\Models\Reaction $reaction
+     * @param Rubenwouters\CrmLauncher\Models\Publishment $publishment
+     * @param Rubenwouters\CrmLauncher\Models\Message $message
+     * @param Rubenwouters\CrmLauncher\Models\Media $media
+     * @param Rubenwouters\CrmLauncher\Models\Answer $answer
+     * @param Rubenwouters\CrmLauncher\Models\InnerComment $innerComment
+     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
+     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
      */
     public function __construct(
         Contact $contact,
         CaseOverview $case,
         Reaction $reaction,
+        Publishment $publishment,
+        Message $message,
+        Media $media,
+        Answer $answer,
+        InnerComment $innerComment,
         FetchTwitterContent $twitterContent,
         FetchFacebookContent $facebookContent
     ) {
         $this->contact = $contact;
         $this->case = $case;
         $this->reaction = $reaction;
+        $this->publishment = $publishment;
+        $this->message = $message;
+        $this->media = $media;
+        $this->answer = $answer;
         $this->twitterContent = $twitterContent;
         $this->facebookContent = $facebookContent;
     }
@@ -74,7 +108,7 @@ class UpdateAllCases {
      */
     public function collectPrivateConversations()
     {
-        $newest = Message::getNewestMessageDate();
+        $newest = $this->message->getNewestMessageDate();
         $conversations = $this->facebookContent->fetchPrivateConversations();
 
         foreach ($conversations->data as $key => $conversation) {
@@ -90,7 +124,7 @@ class UpdateAllCases {
      */
     public function collectPosts()
     {
-        $newestPost = Message::getNewestPostDate();
+        $newestPost = $this->message->getNewestPostDate();
         $posts = $this->facebookContent->fetchPosts($newestPost);
 
         foreach ($posts->data as $key => $post) {
@@ -108,11 +142,11 @@ class UpdateAllCases {
             $message->post_date = changeFbDateFormat($post->created_time);
             $message->save();
 
-            Media::handleMedia($message->id, $post, 'facebook');
+            $this->media->handleMedia($message->id, $post, 'facebook');
         }
 
         $newestComment = latestCommentDate();
-        $newestInnerComment = InnerComment::LatestInnerCommentDate();
+        $newestInnerComment = $this->innerComment->LatestInnerCommentDate();
         $this->fetchComments($newestComment);
         $this->fetchInnerComments($newestInnerComment);
     }
@@ -136,22 +170,22 @@ class UpdateAllCases {
                 $case = $this->case->createCase('twitter_mention', $mention, $contact);
             }
 
-            if ((Answer::where('tweet_id', $inReplyTo)->exists() || Message::where('tweet_id', $inReplyTo)->exists())
+            if (($this->answer->::where('tweet_id', $inReplyTo)->exists() || $this->message->where('tweet_id', $inReplyTo)->exists())
                 && $inReplyTo != null
             ) {
                 $contact = $this->contact->createContact('twitter_mention', $mention);
                 $message->contact_id = $contact->id;
 
-                if (Answer::where('tweet_id', $inReplyTo)->exists()) {
-                    $post = Answer::where('tweet_id', $inReplyTo)->first();
+                if ($this->answer->where('tweet_id', $inReplyTo)->exists()) {
+                    $post = $this->answer->where('tweet_id', $inReplyTo)->first();
                 } else {
-                    $post = Message::where('tweet_id', $inReplyTo)->first();
+                    $post = $this->message->where('tweet_id', $inReplyTo)->first();
                 }
 
                 $message->case_id = $post->case_id;
-                $case = CaseOverview::find($post->case_id);
+                $case = $this->case->find($post->case_id);
 
-            } else if ($inReplyTo != null && Publishment::where('tweet_id', $inReplyTo)->exists()) {
+            } else if ($inReplyTo != null && $this->publishment->where('tweet_id', $inReplyTo)->exists()) {
                 $this->fetchSpecificMention($mention);
                 continue;
             } else if ($inReplyTo != null) {
@@ -166,7 +200,7 @@ class UpdateAllCases {
             $message->post_date = $date;
             $message->save();
 
-            Media::handleMedia($message->id, $mention, 'twitter');
+            $this->media->handleMedia($message->id, $mention, 'twitter');
             $this->updateCase($case->id, 'twitter', $mention['id_str']);
         }
     }
@@ -178,13 +212,13 @@ class UpdateAllCases {
     private function fetchSpecificMention($mention)
     {
         $inReplyTo = $mention['in_reply_to_status_id_str'];
-        $publishment = Publishment::where('tweet_id', $inReplyTo)->first();
+        $publishment = $this->publishment->where('tweet_id', $inReplyTo)->first();
 
-        if (($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || Reaction::where('tweet_id', $mention['in_reply_to_status_id_str'])->exists())
+        if (($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || $this->reaction->where('tweet_id', $mention['in_reply_to_status_id_str'])->exists())
             && $publishment->tweet_id != null
         ) {
             $reaction = $this->reaction->insertReaction('twitter', $mention, $publishment->id);
-            Media::handleMedia($reaction->id, $mention, 'twitter_reaction');
+            $this->media->handleMedia($reaction->id, $mention, 'twitter_reaction');
         }
     }
 
@@ -201,8 +235,8 @@ class UpdateAllCases {
             $date = changeDateFormat($direct['created_at']);
             $message = new Message();
 
-            if (Contact::where('twitter_id', $direct['sender']['id_str'])->exists()) {
-                $contact = Contact::where('twitter_id', $direct['sender']['id_str'])->first();
+            if ($this->contact->where('twitter_id', $direct['sender']['id_str'])->exists()) {
+                $contact = $this->contact->where('twitter_id', $direct['sender']['id_str'])->first();
                 if (count($contact->cases)) {
                     $case = $contact->cases()->where('origin', 'Twitter direct')->orderBy('id', 'DESC')->first();
                 } else {
@@ -223,7 +257,7 @@ class UpdateAllCases {
             $message->post_date = $date;
             $message->save();
 
-            Media::handleMedia($message->id, $direct, 'twitter');
+            $this->media->handleMedia($message->id, $direct, 'twitter');
             $this->updateCase($case->id, 'twitter', $direct['id_str']);
         }
     }
@@ -244,8 +278,8 @@ class UpdateAllCases {
             ) {
                 $contact = $this->contact->createContact('facebook', $result);
 
-                if (CaseOverview::PrivateFbMessages($contact)->exists()) {
-                    $case = CaseOverview::PrivateFbMessages($contact)->first();
+                if ($this->case->PrivateFbMessages($contact)->exists()) {
+                    $case = $this->case->PrivateFbMessages($contact)->first();
                     $case->origin = 'Facebook private';
                     $case->contact_id = $contact->id;
                     $case->status = 0;
@@ -263,7 +297,7 @@ class UpdateAllCases {
                 $message->post_date = changeFbDateFormat($result->created_time);
                 $message->save();
 
-                Media::handleMedia($message->id, $result, 'facebook_comment');
+                $this->media->handleMedia($message->id, $result, 'facebook_comment');
             }
         }
     }
@@ -287,16 +321,16 @@ class UpdateAllCases {
                         && (!$newest || new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest))
                     ) {
 
-                        if (Contact::FindByFbId($comment->from->id)->exists()) {
-                            $contact = Contact::where('facebook_id', $comment->from->id)->first();
+                        if ($this->contact->FindByFbId($comment->from->id)->exists()) {
+                            $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
                         } else {
                             $contact = $this->contact->createContact('facebook', $comment);
                         }
 
-                        if (Publishment::where('fb_post_id', $message->fb_post_id)->exists()) {
-                            $id = Publishment::where('fb_post_id', $message->fb_post_id)->first()->id;
+                        if ($this->publishment->where('fb_post_id', $message->fb_post_id)->exists()) {
+                            $id = $this->publishment->where('fb_post_id', $message->fb_post_id)->first()->id;
                             $reaction = $this->reaction->insertReaction('facebook', $comment, $id);
-                            Media::handleMedia($reaction->id, $comment, 'facebook_reactionInner');
+                            $this->media->handleMedia($reaction->id, $comment, 'facebook_reactionInner');
                         } else {
                             $msg = new Message();
                             $msg->fb_reply_id = $message->fb_post_id;
@@ -307,7 +341,7 @@ class UpdateAllCases {
                             $msg->message = $comment->message;
                             $msg->save();
 
-                            Media::handleMedia($msg->id, $comment, 'facebook_comment');
+                            $this->media->handleMedia($msg->id, $comment, 'facebook_comment');
                             $this->updateCase($message->case_id, 'facebook', $comment->id);
                         }
                     }
@@ -324,7 +358,7 @@ class UpdateAllCases {
      */
     private function updateCase($caseId, $type, $messageId)
     {
-        $case = CaseOverview::find($caseId);
+        $case = $this->case->find($caseId);
 
         if ($type == 'twitter') {
             $case->latest_tweet_id = $messageId;
@@ -342,11 +376,11 @@ class UpdateAllCases {
     private function getPosts()
     {
         $collection = collect();
-        $messages = Message::with(['caseOverview' => function($query) {
+        $messages = $this->message->with(['caseOverview' => function($query) {
                 $query->where('status', '!=', '2')->where('origin', 'Facebook post');
             }])->where('fb_post_id', '!=', '')->where('fb_reply_id', '')->where('fb_private_id', '')->get();
 
-        $publishments = Publishment::facebookPosts();
+        $publishments = $this->publishment->facebookPosts();
 
         foreach ($messages as $key => $message) {
             $collection->push($message);
@@ -379,10 +413,10 @@ class UpdateAllCases {
                 if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
                     && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
                 ) {
-                    if (! Contact::FindByFbId($comment->from->id)->exists()) {
+                    if (! $this->contact->findByFbId($comment->from->id)->exists()) {
                         $contact = $this->contact->createContact('facebook', $comment);
                     } else {
-                        $contact = Contact::where('facebook_id', $comment->from->id)->first();
+                        $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
                     }
 
                     $innerComment = new InnerComment();
@@ -402,7 +436,7 @@ class UpdateAllCases {
                     $innerComment->message = $comment->message;
                     $innerComment->save();
 
-                    Media::handleMedia($innerComment->id, $comment, 'facebook_innerComment');
+                    $this->media->handleMedia($innerComment->id, $comment, 'facebook_innerComment');
                 }
             }
         }
@@ -411,9 +445,9 @@ class UpdateAllCases {
     private function getComments()
     {
         $collection = collect();
-        $messages = Message::where('fb_post_id', '!=', '')->get();
-        $answers = Answer::where('fb_post_id', '!=', '')->get();
-        $reactions = Reaction::where('fb_post_id', '!=', '')->get();
+        $messages = $this->message->where('fb_post_id', '!=', '')->get();
+        $answers = $this->answer->where('fb_post_id', '!=', '')->get();
+        $reactions = $this->reaction->where('fb_post_id', '!=', '')->get();
 
         foreach ($messages as $key => $message) {
             $collection->push($message);

@@ -27,7 +27,7 @@ class Configuration extends Model
      * @param  collection $verification
      * @return void
      */
-    public static function insertTwitterId($verification)
+    public function insertTwitterId($verification)
     {
         $config = Configuration::first();
         $config->twitter_screen_name = $verification['screen_name'];

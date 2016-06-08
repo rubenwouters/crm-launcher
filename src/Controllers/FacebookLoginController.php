@@ -3,7 +3,6 @@
 namespace Rubenwouters\CrmLauncher\Controllers;
 
 use Illuminate\Http\Request;
-
 use Illuminate\Routing\Controller;
 use App\Http\Requests;
 use Socialite;
@@ -12,6 +11,14 @@ use Rubenwouters\CrmLauncher\Models\Configuration;
 
 class FacebookLoginController extends Controller
 {
+    /**
+     * @param Rubenwouters\CrmLauncher\Models\Configuration $config
+     */
+    public function __construct(Configuration $config)
+    {
+        $this->config = $config;
+    }
+
     /**
      * Ask permission on Facebook account.
      * @return view
@@ -70,10 +77,10 @@ class FacebookLoginController extends Controller
      */
     private function insertFbToken($token)
     {
-        if (count(Configuration::find(1)) < 1) {
+        if (count($this->config->find(1)) < 1) {
             $config = new Configuration();
         } else {
-            $config = Configuration::find(1);
+            $config = $this->config->find(1);
         }
 
         $config->linked_facebook = 1;

@@ -33,7 +33,7 @@ class Media extends Model
      * @param  collection $mention
      * @return void
      */
-    public static function handleMedia($messageId, $message, $type = null)
+    public function handleMedia($messageId, $message, $type = null)
     {
         $msg = Message::find($messageId);
         if ($type == 'innerComment') {

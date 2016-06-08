@@ -7,11 +7,6 @@ use Session;
 
 class FetchTwitterContent {
 
-    /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Contact
-     */
-    protected $contact;
 
     /**
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
@@ -29,7 +24,7 @@ class FetchTwitterContent {
     {
         try {
             $client = initTwitter();
-            $pageId = Configuration::TwitterId();
+            $pageId = $this->config->TwitterId();
             $lookup = $client->get('users/show/followers_count.json?user_id=' . $pageId);
 
             return json_decode($lookup->getBody(), true);
@@ -48,7 +43,7 @@ class FetchTwitterContent {
     public function fetchTwitterStats()
     {
         $client = initTwitter();
-        $twitterId = Configuration::twitterId();
+        $twitterId = $this->config->twitterId();
 
         try {
             $tweets = $client->get('statuses/user_timeline.json?user_id=' . $twitterId);
@@ -243,7 +238,6 @@ class FetchTwitterContent {
 
             $contact->save();
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            dd($e);
             getErrorMessage($e->getResponse()->getStatusCode());
             return back();
         }

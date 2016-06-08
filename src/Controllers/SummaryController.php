@@ -13,15 +13,16 @@ class SummaryController extends Controller
 {
     /**
      * Contact implementation
-     * @var Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter
+     * @var Rubenwouters\CrmLauncher\Models\CaseOverview
      */
     protected $case;
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     * @param Rubenwouters\CrmLauncher\Models\CaseOverview $case
      */
-    public function __construct(CaseOverview $case)
-    {
+    public function __construct(
+        CaseOverview $case
+    ) {
         $this->case = $case;
     }
 
@@ -39,7 +40,7 @@ class SummaryController extends Controller
         $summary->summary = $request->input('summary');
         $summary->save();
 
-        $case = CaseOverview::find($caseId);
+        $case = $this->case->find($caseId);
         $this->case->openCase($case);
         Session::flash('flash_success', trans('crm-launcher::success.summary_added'));
 

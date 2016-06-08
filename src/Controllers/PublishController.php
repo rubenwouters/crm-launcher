@@ -5,21 +5,16 @@ namespace Rubenwouters\CrmLauncher\Controllers;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests;
-use Rubenwouters\CrmLauncher\Models\Publishment;
-use Rubenwouters\CrmLauncher\Models\Reaction;
-use Rubenwouters\CrmLauncher\Models\Configuration;
-use Rubenwouters\CrmLauncher\Models\InnerComment;
-use Rubenwouters\CrmLauncher\Models\Media;
-use Rubenwouters\CrmLauncher\Models\Log;
-use Rubenwouters\CrmLauncher\Models\CaseOverview;
-use Rubenwouters\CrmLauncher\Models\Answer;
-use Rubenwouters\CrmLauncher\Models\Message;
 use Auth;
 use Session;
 use Carbon\Carbon;
 use \Exception;
 use Datetime;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Rubenwouters\CrmLauncher\Models\Publishment;
+use Rubenwouters\CrmLauncher\Models\Reaction;
+use Rubenwouters\CrmLauncher\Models\InnerComment;
+use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 
@@ -28,40 +23,38 @@ class PublishController extends Controller
     use ValidatesRequests;
 
     /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Contact
-     */
-    protected $log;
-
-    /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\Models\Reaction
      */
     protected $reaction;
 
     /**
-     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Publishment
+     */
+    protected $publishment;
+
+    /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
      */
     protected $twitterContent;
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
      */
     protected $facebookContent;
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Contact $contact
-     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     * @param Rubenwouters\CrmLauncher\Models\Reaction $reaction
+     * @param Rubenwouters\CrmLauncher\Models\Publishment $publishment
+     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
+     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
      */
     public function __construct(
-        Log $log,
         Reaction $reaction,
+        Publishment $publishment,
         FetchTwitterContent $twitterContent,
         FetchFacebookContent $facebookContent
     ) {
-        $this->log = $log;
+        $this->publishment = $publishment;
         $this->reaction = $reaction;
         $this->twitterContent = $twitterContent;
         $this->facebookContent = $facebookContent;
@@ -73,7 +66,7 @@ class PublishController extends Controller
      */
     public function index()
     {
-        $publishments = Publishment::orderBy('id', 'DESC')->paginate(5);
+        $publishments = $this->publishment->orderBy('id', 'DESC')->paginate(5);
 
         return view('crm-launcher::publisher.index')->with('publishments', $publishments);
     }
@@ -85,7 +78,7 @@ class PublishController extends Controller
      */
     public function detail($id)
     {
-        $publishment = Publishment::find($id);
+        $publishment = $this->publishment->find($id);
 
         $data = [
             'publishment' => $publishment,
@@ -108,7 +101,7 @@ class PublishController extends Controller
             'answer' => 'required',
         ]);
 
-        $publishment = Publishment::find($id);
+        $publishment = $this->publishment->find($id);
 
         if ($request->input('in_reply_to') != "") {
             $replyTo = $request->input('in_reply_to');
@@ -133,8 +126,8 @@ class PublishController extends Controller
         $this->validate($request, [
             'answer' => 'required',
         ]);
-        
-        $publishment = Publishment::find($id);
+
+        $publishment = $this->publishment->find($id);
 
         if ($request->input('in_reply_to') != "") {
             $replyTo = $request->input('in_reply_to');
@@ -188,8 +181,8 @@ class PublishController extends Controller
     {
         $innerComment = new InnerComment();
 
-        if (Reaction::where('fb_post_id', $messageId)->exists()) {
-            $innerComment->reaction_id = Reaction::where('fb_post_id', $messageId)->first()->id;
+        if ($this->reaction->where('fb_post_id', $messageId)->exists()) {
+            $innerComment->reaction_id = $this->reaction->where('fb_post_id', $messageId)->first()->id;
         }
 
         $innerComment->user_id = Auth::user()->id;
@@ -207,8 +200,8 @@ class PublishController extends Controller
      */
     private function insertPublishment($type, $publication, $content)
     {
-        if (Publishment::double($content)->exists()) {
-            $publishment = Publishment::double($content)->first();
+        if ($this->publishment->double($content)->exists()) {
+            $publishment = $this->publishment->double($content)->first();
         } else {
             $publishment = new Publishment();
         }

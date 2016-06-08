@@ -12,43 +12,55 @@ use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 class UpdateStatistics {
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\Models\Contact
      */
     protected $log;
 
     /**
-     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Configuration
+     */
+    protected $config;
+
+    /**
      * @var Rubenwouters\CrmLauncher\Models\Contact
      */
     protected $contact;
 
     /**
-     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Publishment
+     */
+    protected $publishment;
+
+    /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
      */
     protected $twitterContent;
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
      */
     protected $facebookContent;
 
     /**
+     * @param Rubenwouters\CrmLauncher\Models\Log $log
+     * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      * @param Rubenwouters\CrmLauncher\Models\Contact $contact
-     * @param Rubenwouters\CrmLauncher\Models\Case $case
+     * @param Rubenwouters\CrmLauncher\Models\Publishment $publishment
      * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
      * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
      */
     public function __construct(
         Log $log,
+        Configuration $config,
         Contact $contact,
+        Publishment $publishment,
         FetchTwitterContent $twitterContent,
         FetchFacebookContent $facebookContent
     ) {
         $this->log = $log;
+        $this->config = $config;
         $this->contact = $contact;
+        $this->publishment = $publishment;
         $this->twitterContent = $twitterContent;
         $this->facebookContent = $facebookContent;
     }
@@ -63,9 +75,9 @@ class UpdateStatistics {
         $tweets = $this->twitterContent->fetchTwitterStats();
 
         foreach ($tweets as $key => $tweet) {
-            if (Publishment::where('tweet_id', $tweet['id_str'])->exists()) {
+            if ($this->publishment->where('tweet_id', $tweet['id_str'])->exists()) {
 
-                $publishment = Publishment::where('tweet_id', $tweet['id_str'])->first();
+                $publishment = $this->publishment->where('tweet_id', $tweet['id_str'])->first();
                 $publishment->twitter_likes = $tweet['favorite_count'];
                 $publishment->twitter_retweets = $tweet['retweet_count'];
                 $publishment->save();
@@ -81,7 +93,7 @@ class UpdateStatistics {
      */
     public function updateFbStats()
     {
-        $posts = Publishment::orderBy('id', 'DESC')->where('fb_post_id', '!=', '')->get();
+        $posts = $this->publishment->orderBy('id', 'DESC')->where('fb_post_id', '!=', '')->get();
 
         foreach ($posts as $key => $post) {
             $object = $this->facebookContent->fetchFbStats($post);
@@ -102,7 +114,7 @@ class UpdateStatistics {
     {
         $likes = $this->facebookContent->fetchLikes();
 
-        $config = Configuration::first();
+        $config = $this->config->first();
         $config->facebook_likes = $likes['fan_count'];
         $config->save();
     }
@@ -115,7 +127,7 @@ class UpdateStatistics {
     {
         $followers = $this->twitterContent->fetchFollowers();
 
-        $config = Configuration::first();
+        $config = $this->config->first();
         $config->twitter_followers = $followers['followers_count'];
         $config->save();
     }

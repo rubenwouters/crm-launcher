@@ -15,13 +15,28 @@ class UsersController extends Controller
     use ValidatesRequests;
 
     /**
+     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\User
+     */
+    protected $user;
+
+    /**
+     * @param Rubenwouters\CrmLauncher\Models\CaseOverview $case
+     */
+    public function __construct(
+        User $user
+    ) {
+        $this->user = $user;
+    }
+
+    /**
      * Returns team overview
      * @return view
      */
     public function index()
     {
-        $team = User::where('canViewCRM', 1)->paginate(7, ['*'],'team');
-        
+        $team = $this->user->where('canViewCRM', 1)->paginate(7, ['*'],'team');
+
         return view('crm-launcher::users.index')->with('team', $team);
     }
 
@@ -63,7 +78,7 @@ class UsersController extends Controller
      */
     public function toggleUser($id)
     {
-        $user = User::find($id);
+        $user = $this->user->find($id);
 
         if (Auth::user()->id != $id) {
             $state = $user->canViewCRM;
@@ -89,12 +104,12 @@ class UsersController extends Controller
 
         $keywords = $request->input('keywords');
 
-        $team = User::where('canViewCRM', 1)->where(function ($query) use ($keywords) {
+        $team = $this->user->where('canViewCRM', 1)->where(function ($query) use ($keywords) {
             $query->where('name', 'LIKE', '%' . $keywords .'%')
                 ->orWhere('email', 'LIKE', '%' . $keywords .'%');
         })->paginate(3, ['*'],'team');
 
-        $otherUsers = User::where('canViewCRM', 0)->where(function ($query) use ($keywords) {
+        $otherUsers = $this->user->where('canViewCRM', 0)->where(function ($query) use ($keywords) {
             $query->where('name', 'LIKE', '%' . $keywords .'%')
                 ->orWhere('email', 'LIKE', '%' . $keywords .'%');
         })->paginate(4, ['*'],'users');

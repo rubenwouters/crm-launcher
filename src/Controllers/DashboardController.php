@@ -9,7 +9,6 @@ use Carbon\Carbon;
 use \Exception;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
 use Rubenwouters\CrmLauncher\Models\Configuration;
-use Rubenwouters\CrmLauncher\Models\Message;
 use Rubenwouters\CrmLauncher\Models\Log;
 use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter;
@@ -17,25 +16,49 @@ use Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter;
 class DashboardController extends Controller
 {
     /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Contact
+     * @var Rubenwouters\CrmLauncher\Models\Log
      */
     protected $log;
 
     /**
-     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Answer
+     */
+    protected $answer;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\Configuration
+     */
+    protected $config;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\CaseOverview
+     */
+    protected $case;
+
+    /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter
      */
     protected $validateTwitter;
 
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Contact $contact
+     * @param Rubenwouters\CrmLauncher\Models\Log $log
+     * @param Rubenwouters\CrmLauncher\Models\Answer  $answer
+     * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      * @param Rubenwouters\CrmLauncher\Models\Case $case
+     * @param Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter $validateTwitter
      */
-    public function __construct(Log $log, ValidateTwitter $validateTwitter)
-    {
+    public function __construct(
+        Log $log,
+        Answer $answer,
+        Configuration $config,
+        CaseOverview $case,
+        ValidateTwitter $validateTwitter
+    ) {
         $this->log = $log;
+        $this->answer = $answer;
+        $this->case = $case;
+        $this->config = $config;
         $this->validateTwitter = $validateTwitter;
     }
 
@@ -45,22 +68,22 @@ class DashboardController extends Controller
     */
     public function index()
     {
-        if (! Configuration::exists() || ! Configuration::first()->valid_credentials) {
+        if (! $this->config->exists() || ! $this->config->first()->valid_credentials) {
 
             $data = ['validTwitterSettings' => $this->validateTwitter->validTwitterSettings()];
             return view('crm-launcher::dashboard.facebook', $data);
         }
 
         $data = [
-            'newCases' => CaseOverview::newCases(),
-            'openCases' => CaseOverview::openCases(),
-            'closedCases' => CaseOverview::closedCases(),
+            'newCases' => $this->case->newCases(),
+            'openCases' => $this->case->openCases(),
+            'closedCases' => $this->case->closedCases(),
             'avgWaitTime' => $this->getAvgWaitTime(),
             'avgMessages' => $this->getAvgMessages(),
             'avgHelpers' => $this->getAvgHelpers(),
             'todaysMessages' => $this->getTodaysMessages(),
-            'followers' => Configuration::first()->twitter_followers,
-            'likes' => Configuration::first()->facebook_likes,
+            'followers' => $this->config->first()->twitter_followers,
+            'likes' => $this->config->first()->facebook_likes,
         ];
 
         return view('crm-launcher::dashboard.index', $data);
@@ -72,13 +95,13 @@ class DashboardController extends Controller
      */
     public function launch()
     {
-        if (! Configuration::exists()) {
+        if (! $this->config->exists()) {
             $config = new Configuration();
             $config->save();
 
             $this->validateTwitter->validTwitterSettings();
         } else {
-            $config = Configuration::first();
+            $config = $this->config->first();
         }
 
         $config->valid_credentials = 1;
@@ -93,7 +116,7 @@ class DashboardController extends Controller
      */
     private function getAvgWaitTime()
     {
-        $cases = CaseOverview::PendingCases();
+        $cases = $this->case->PendingCases();
         $arTime = [];
 
         foreach ($cases as $key => $case) {
@@ -122,7 +145,7 @@ class DashboardController extends Controller
      */
     private function getAvgMessages()
     {
-        $cases = CaseOverview::ClosedCases();
+        $cases = $this->case->ClosedCases();
         $counter = 0;
 
         foreach ($cases as $key => $case) {
@@ -145,7 +168,7 @@ class DashboardController extends Controller
      */
     private function getAvgHelpers()
     {
-        $cases = CaseOverview::ClosedCases();
+        $cases = $this->case->ClosedCases();
         $counter = 0;
 
         foreach ($cases as $key => $case) {
@@ -166,14 +189,14 @@ class DashboardController extends Controller
      */
     private function getTodaysMessages()
     {
-        return count(Answer::TodaysAnswers());
+        return count($this->answer->TodaysAnswers());
     }
 
     private function lastUpdate()
     {
-        if (Log::DashboardUpdate()->exists()) {
+        if ($this->log->dashboardUpdate()->exists()) {
 
-            $lastUpdate = Log::DashboardUpdate()->orderBy('id', 'DESC')->first()->created_at;
+            $lastUpdate = $this->log->dashboardUpdate()->orderBy('id', 'DESC')->first()->created_at;
             $now = Carbon::now();
             $last = new Carbon($lastUpdate);
 

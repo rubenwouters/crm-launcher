@@ -48,7 +48,7 @@ class Log extends Model
      * Check seconds between previous API call & now
      * @return int
      */
-    public static function secondsago($type)
+    public function secondsago($type)
     {
         if (Log::where('case_type', $type)->exists()) {
             $now = Carbon::now();

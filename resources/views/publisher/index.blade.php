@@ -42,7 +42,7 @@
                     <div class="col-lg-12 summary-textarea static-parent">
                         <div class="word-count">0/140</div>
                         {!! Form::textarea('content',null,['placeholder' => 'Enter your content', 'rows' => 4, 'cols' => 40]) !!}
-                    </div>
+                    </div> 
 
                     <div class="col-lg-12 submit">
                         {!! Form::submit('Publish') !!}

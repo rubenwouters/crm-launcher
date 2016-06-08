@@ -56,7 +56,7 @@ class Message extends Model
     }
 
 
-    public static function getNewestPostDate()
+    public function getNewestPostDate()
     {
         if (Message::where('fb_post_id', '!=', '')->exists()) {
             return Message::where('fb_post_id', '!=', '')
@@ -66,7 +66,7 @@ class Message extends Model
         return 0;
     }
 
-    public static function getNewestMessageDate()
+    public function getNewestMessageDate()
     {
         if (Message::where('fb_private_id', '!=', '')->exists()) {
             return Message::where('fb_private_id', '!=', '')

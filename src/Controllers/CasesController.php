@@ -10,16 +10,11 @@ use DateTime;
 use Session;
 use Auth;
 use Rubenwouters\CrmLauncher\Models\Contact;
-use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
-use Rubenwouters\CrmLauncher\Models\Publishment;
 use Rubenwouters\CrmLauncher\Models\Message;
 use Rubenwouters\CrmLauncher\Models\InnerComment;
-use Rubenwouters\CrmLauncher\Models\InnerAnswer;
 use Rubenwouters\CrmLauncher\Models\Answer;
-use Rubenwouters\CrmLauncher\Models\Media;
 use Rubenwouters\CrmLauncher\Models\Log;
-use Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 
@@ -32,43 +27,71 @@ class CasesController extends Controller
     public static $arActive = [];
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\Models\Log
      */
     protected $log;
 
     /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Case
+     * @var Rubenwouters\CrmLauncher\Models\CaseOverview
      */
     protected $case;
 
     /**
-     * Contact implementation
+     * @var Rubenwouters\CrmLauncher\Models\Answer
+     */
+    protected $answer;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\Innercomment
+     */
+    protected $innerComment;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\Contact
+     */
+    protected $contact;
+
+    /**
+     * @var Rubenwouters\CrmLauncher\Models\Message
+     */
+    protected $message;
+
+    /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
      */
     protected $twitterContent;
 
     /**
-     * Contact implementation
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
      */
     protected $facebookContent;
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Log $log
+     * @param Rubenwouters\CrmLauncher\Models\Log  $log
      * @param Rubenwouters\CrmLauncher\Models\Case $case
+     * @param Rubenwouters\CrmLauncher\Models\Answer $answer
+     * @param Rubenwouters\CrmLauncher\Models\Contact $contact
+     * @param Rubenwouters\CrmLauncher\Models\Message $message
+     * @param Rubenwouters\CrmLauncher\Models\Innercomment $innerComment
      * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
      * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
      */
     public function __construct(
         Log $log,
         CaseOverview $case,
+        Answer $answer,
+        Contact $contact,
+        Message $message,
+        InnerComment $innerComment,
         FetchTwitterContent $twitterContent,
         FetchFacebookContent $facebookContent
     ) {
         $this->log = $log;
         $this->case = $case;
+        $this->answer = $answer;
+        $this->innerComment = $innerComment;
+        $this->contact = $contact;
+        $this->message = $message;
         $this->twitterContent = $twitterContent;
         $this->facebookContent = $facebookContent;
     }
@@ -79,13 +102,12 @@ class CasesController extends Controller
     */
     public function index()
     {
-        $secondsAgo = Log::secondsAgo('fetching');
+        $secondsAgo = $this->log->secondsAgo('fetching');
 
         if (! $secondsAgo) {
             $this->initIds();
         }
-
-        $cases = CaseOverview::visibleCases();
+        $cases = $this->case->visibleCases();
 
         return view('crm-launcher::cases.index')->with('cases', $cases);
     }
@@ -109,7 +131,7 @@ class CasesController extends Controller
             if (! $results) {
                 $searchResult['bool'] = false;
             }
-            $cases = CaseOverview::orderBy('updated_at', 'DESC')->orderBy('id', 'DESC');
+            $cases = $this->case->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC');
         }
 
         $cases = $this->searchByCaseType($cases, $request);
@@ -127,7 +149,7 @@ class CasesController extends Controller
      */
     public function detail($id)
     {
-        $case = CaseOverview::find($id);
+        $case = $this->case->find($id);
         $handle = $case->contact->twitter_handle;
         $summaries = $case->summaries->sortByDesc('id');
 
@@ -145,7 +167,7 @@ class CasesController extends Controller
      */
     public function replyTweet(Request $request, $id)
     {
-        $case = CaseOverview::find($id);
+        $case = $this->case->find($id);
         $handle = $case->contact->twitter_handle;
         $message = $case->messages->sortByDesc('id')->first();
 
@@ -183,7 +205,7 @@ class CasesController extends Controller
      */
     public function replyPost(Request $request, $caseId)
     {
-        $case = CaseOverview::find($caseId);
+        $case = $this->case->find($caseId);
         $this->updateLatestHelper($case);
 
         if ($request->input('in_reply_to') != '') {
@@ -216,7 +238,7 @@ class CasesController extends Controller
      */
     public function replyPrivate(Request $request, $caseId)
     {
-        $case = CaseOverview::find($caseId);
+        $case = $this->case->find($caseId);
         $this->updateLatestHelper($case);
 
         $conversation = $case->messages->sortByDesc('id')->first();
@@ -235,7 +257,7 @@ class CasesController extends Controller
      */
     public function toggleFollowUser($caseId)
     {
-        $case = CaseOverview::find($caseId);
+        $case = $this->case->find($caseId);
         $contact = $case->contact;
         $twitterId = $contact->twitter_id;
         $this->twitterContent->toggleFollowUser($contact, $twitterId);
@@ -251,11 +273,9 @@ class CasesController extends Controller
      */
     public function deleteTweet($caseId, $messageId)
     {
-        $answer = Answer::find($messageId);
-        $case = CaseOverview::find($caseId);
-
+        $answer = $this->answer->find($messageId);
+        $case = $this->case->find($caseId);
         $this->twitterContent->deleteTweet($case, $answer);
-
         $answer->delete();
 
         return back();
@@ -269,7 +289,7 @@ class CasesController extends Controller
      */
     public function deletePost($caseId, $messageId)
     {
-        $answer = Answer::find($messageId);
+        $answer = $this->answer->find($messageId);
         $answer->delete();
 
         $this->facebookContent->deleteFbPost($answer);
@@ -285,7 +305,7 @@ class CasesController extends Controller
      */
     public function deleteInner($caseId, $messageId)
     {
-        $comment = InnerComment::find($messageId);
+        $comment = $this->innerComment->find($messageId);
         $comment->delete();
 
         $this->facebookContent->deleteFbPost($comment);
@@ -300,7 +320,7 @@ class CasesController extends Controller
      */
     public function toggleCase($caseId)
     {
-        $case = CaseOverview::find($caseId);
+        $case = $this->case->find($caseId);
 
         if ($case->status == 2) {
             $case->status = 1;
@@ -355,21 +375,21 @@ class CasesController extends Controller
     private function searchByKeywords(Request $request)
     {
         $keywords = $request->input('keywords');
-        $contacts = Contact::where('name', 'LIKE', '%' . $keywords . '%')->get();
+        $contacts = $this->contact->where('name', 'LIKE', '%' . $keywords . '%')->get();
 
         if (is_numeric($keywords)) {
-            $query = CaseOverview::where('id', $keywords);
+            $query = $this->case->where('id', $keywords);
         } else if (strpos($keywords, 'tweet') !== false || strpos($keywords, 'twitter') !== false) {
-            $query = CaseOverview::where('origin', 'Twitter mention')->orWhere('origin', 'Twitter direct');
+            $query = $this->case->where('origin', 'Twitter mention')->orWhere('origin', 'Twitter direct');
         } else if (strpos($keywords, 'fb') !== false || strpos($keywords, 'facebook') !== false || strpos($keywords, 'post') !== false) {
-            $query = CaseOverview::where('origin', 'Facebook post');
+            $query = $this->case->where('origin', 'Facebook post');
         }
 
         if (strtotime($keywords)) {
             $today = date("Y-m-d", strtotime("+0 hours", strtotime($keywords)));
             $tomorrow = date("Y-m-d", strtotime("+1 day", strtotime($keywords)));
 
-            $query = CaseOverview::whereHas('messages', function($q) use ($today, $tomorrow) {
+            $query = $this->case->whereHas('messages', function($q) use ($today, $tomorrow) {
                 $q->orderBy('id', 'ASC')
                     ->where('post_date', '>=', $today)
                     ->where('post_date', '<', $tomorrow);
@@ -442,11 +462,11 @@ class CasesController extends Controller
     {
         $innerComment = new InnerComment();
 
-        if (Message::where('fb_post_id', $messageId)->exists()) {
-            $message = Message::where('fb_post_id', $messageId)->first();
+        if ($this->message->where('fb_post_id', $messageId)->exists()) {
+            $message = $this->message->where('fb_post_id', $messageId)->first();
             $innerComment->message_id = $message->id;
         } else {
-            $answer = Answer::where('fb_post_id', $messageId)->first();
+            $answer = $this->answer->where('fb_post_id', $messageId)->first();
             $innerComment->answer_id = $answer->id;
         }
 
@@ -513,7 +533,7 @@ class CasesController extends Controller
      */
     private function linkCaseToUser($case)
     {
-        $case = CaseOverview::find($case->id);
+        $case = $this->case->find($case->id);
         if (!$case->users->contains(Auth::user()->id)) {
             $case->users()->attach(Auth::user()->id);
         }
