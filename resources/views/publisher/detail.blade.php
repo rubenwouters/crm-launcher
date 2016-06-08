@@ -15,7 +15,6 @@
             <div class="error-message"><span>{{ $errors->first() }}</span></div>
         @endif
         <div class="row publishments detail">
-
             <div class="col-md-6 col-md-offset-3">
                 <div class="date">{{ date('l d M Y', strtotime($publishment->created_at)) }}</div>
                 <div class="col-md-12 published-content">
@@ -45,7 +44,7 @@
         @if(! count($tweets) && ! count($posts))
             <div class="row">
                 <div class="col-xs-12 no-results">
-                    <h3>No reactions yet.</h3>
+                    <h3>No publishments yet.</h3>
                 </div>
             </div>
         @endif

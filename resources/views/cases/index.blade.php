@@ -76,6 +76,12 @@
             </a>
         @endforeach
 
+        @if(! count($cases))
+            <div class="col-xs-12 no-results">
+                <h3>No cases yet.</h3>
+            </div>
+        @endif
+
         <div class="pagination-centered">
             {!! $cases->appends(Request::all())->render() !!}
         </div>

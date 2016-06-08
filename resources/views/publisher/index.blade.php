@@ -42,7 +42,7 @@
                     <div class="col-lg-12 summary-textarea static-parent">
                         <div class="word-count">0/140</div>
                         {!! Form::textarea('content',null,['placeholder' => 'Enter your content', 'rows' => 4, 'cols' => 40]) !!}
-                    </div> 
+                    </div>
 
                     <div class="col-lg-12 submit">
                         {!! Form::submit('Publish') !!}
@@ -63,7 +63,6 @@
                 @foreach($publishments as $key => $publishment)
                     <a href="/crm/publisher/{{$publishment->id}}">
                         <div class="row">
-                            {{-- <div class="date">{{ date('l d M Y', strtotime($publishment->created_at)) }}</div> --}}
                             <div class="col-md-12 published-content">
                                 {{ rawurldecode($publishment->content) }}
                                 <div class="col-xs-12 icons">
@@ -92,6 +91,12 @@
                 <div class="pagination-centered">
                     {!! $publishments->links() !!}
                 </div>
+
+                @if(! count($publishments))
+                    <div class="col-xs-12 no-results">
+                        <h3>No reactions yet.</h3>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

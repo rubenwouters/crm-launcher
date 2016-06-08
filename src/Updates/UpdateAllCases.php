@@ -170,7 +170,7 @@ class UpdateAllCases {
                 $case = $this->case->createCase('twitter_mention', $mention, $contact);
             }
 
-            if (($this->answer->::where('tweet_id', $inReplyTo)->exists() || $this->message->where('tweet_id', $inReplyTo)->exists())
+            if (($this->answer->where('tweet_id', $inReplyTo)->exists() || $this->message->where('tweet_id', $inReplyTo)->exists())
                 && $inReplyTo != null
             ) {
                 $contact = $this->contact->createContact('twitter_mention', $mention);

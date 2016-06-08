@@ -223,49 +223,7 @@
             @endif
         </div>
 
-        <div class="col-xs-5 basic-info type-date">
-            {{-- <h2>
-                @if ($case->status == 0)
-                    {{ trans('crm-launcher::cases.new_case') }}
-                @elseif ($case->status == 1)
-                    {{ trans('crm-launcher::cases.open_case') }}
-                @else
-                    {{ trans('crm-launcher::cases.closed_case') }}
-                @endif
-            </h2>
-
-            <h3>
-                {{ trans('crm-launcher::cases.since') }}
-                {{ date('d F Y, H:i', strtotime($case->messages->first()->post_date)) }}
-            </h3>
-            <h4>
-                @if($case->status == 1)
-                    <a href="/crm/case/{{$case->id}}/close">{{ trans('crm-launcher::cases.close_case') }}</a>
-                @elseif($case->status == 2)
-                    <a href="/crm/case/{{$case->id}}/close">{{ trans('crm-launcher::cases.reopen_case') }}</a>
-                @endif
-            </h4>
-
-            <div class="name">
-                <h2>{{ $case->contact->name }}</h2>
-                @if(strpos($case->origin, 'Twitter') !== false)
-                    <h3> &commat;{{ $case->contact->twitter_handle}} </h3>
-
-                    <h4>
-                        <a href="/crm/case/{{$case->id}}/follow">
-                            @if($case->contact->following)
-                                {{ trans('crm-launcher::cases.unfollow') }}
-                            @else
-                                {{ trans('crm-launcher::cases.follow') }}
-                            @endif
-                        </a>
-                    </h4>
-                @endif
-            </div> --}}
-        </div>
-
         <div class="col-xs-12 col-md-4 tiles">
-
 
             <div class="col-xs-6 open-since tile">
                 @if($case->origin == 'Twitter mention')

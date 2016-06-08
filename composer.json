@@ -1,6 +1,6 @@
 {
     "name": "rubenwouters/crm-launcher",
-    "description": "Manage your social media (Facebook & Twitter) all in one place. Create cases for every client that asks a question so you can take care of them the way they deserve.",
+    "description": "Manage your customer service via social media in a modern way. Every Tweet or Facebook post becomes a 'case' so you or your team can handle customer service in a clear way with easey follow-ups.",
     "keywords": ["Laravel", "CRM", "Facebook", "Twitter", "Social media", "customer", "service"],
     "homepage": "http://crmlauncher.io",
     "license": "MIT",
