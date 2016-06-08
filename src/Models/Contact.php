@@ -12,7 +12,15 @@ class Contact extends Model
      */
     protected $table = 'contacts';
 
-    // DB relationships
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Contact model
+    |
+    */
+
     public function cases()
     {
        return $this->hasMany('Rubenwouters\CrmLauncher\Models\CaseOverview');
@@ -28,6 +36,14 @@ class Contact extends Model
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\InnerComment');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of Contact model
+    |
+    */
 
     public function scopeFindByFbId($query, $id)
     {

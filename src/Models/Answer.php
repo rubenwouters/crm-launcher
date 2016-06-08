@@ -13,7 +13,14 @@ class Answer extends Model
      */
     protected $table = 'answers';
 
-    // DB relationships
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Answer model
+    |
+    */
     public function message(){
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Message');
     }
@@ -34,7 +41,14 @@ class Answer extends Model
         return $this->belongsTo('App\CaseOverview');
     }
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of Answer model
+    |
+    */
     public function scopeTodaysAnswers()
     {
         return Answer::where('post_date', '>=', Carbon::today())->get();

@@ -14,6 +14,14 @@ class Reaction extends Model
      */
     protected $table = 'reactions';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Reaction model
+    |
+    */
     public function publishment()
     {
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Publishment');
@@ -28,7 +36,14 @@ class Reaction extends Model
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\Media', 'reaction_id');
     }
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of Reaction model
+    |
+    */
 
     public function scopelatestMentionId($query)
     {

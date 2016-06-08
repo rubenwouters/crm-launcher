@@ -12,7 +12,15 @@ class Summary extends Model
      */
     protected $table = 'summaries';
 
-    // DB relationships
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Contact model
+    |
+    */
+   
     public function caseOverview(){
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Case');
     }

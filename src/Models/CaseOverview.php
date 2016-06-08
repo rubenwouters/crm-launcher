@@ -12,7 +12,15 @@ class CaseOverview extends Model
      */
     protected $table = 'cases';
 
-    //DB relationships
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of CaseOvervie model
+    |
+    */
+
     public function users()
     {
         return $this->belongsToMany('App\User', 'users_cases', 'case_id', 'user_id');
@@ -48,65 +56,44 @@ class CaseOverview extends Model
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\Answer');
     }
 
-
-    /**
-     * Get all cases (new, open and closed)
-     * @return collection
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of CaseOverview model
+    |
+    */
     public function scopeAllCases($query)
     {
         return $query->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC')->paginate(12);
     }
 
-    /**
-     * Get all cases (new, open and closed)
-     * @return collection
-     */
     public function scopeVisibleCases($query)
     {
         return $query->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(12);
     }
 
-    /**
-     * Get private Facebook messages from specific contact
-     * @return collection
-     */
     public function scopePrivateFbMessages($query, $contact)
     {
         return $query->where('origin', 'Facebook private')->where('contact_id', $contact->id);
     }
 
-    /**
-     * Get all new cases
-     * @return collection
-     */
     public function scopeNewCases($query)
     {
         return $query->where('status', '0')->orderBy('id', 'DESC')->get();
     }
 
-    /**
-     * Get all open cases
-     * @return collection
-     */
     public function scopeOpenCases($query)
     {
         return $query->where('status', '1')->orderBy('id', 'DESC')->get();
     }
 
-    /**
-     * Get all closed cases
-     * @return collection
-     */
     public function scopeClosedCases($query)
     {
         return $query->where('status', '2')->orderBy('id', 'DESC')->get();
     }
-
-    /**
-     * Get all pending cases (new & open)
-     * @return collection
-     */
+    
     public function scopePendingCases($query)
     {
         return $query->where('status', '1')->orWhere('status', '2')->get();

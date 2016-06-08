@@ -12,6 +12,14 @@ class Configuration extends Model
      */
     protected $table = 'configurations';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of Configuration model
+    |
+    */
     public function scopeFbAccessToken($query)
     {
         return $query->first()->facebook_access_token;

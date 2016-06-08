@@ -113,6 +113,23 @@ class CasesController extends Controller
     }
 
     /**
+     * Shows detail of case
+     * @param  integer $id
+     * @return view
+     */
+    public function detail($id)
+    {
+        $case = $this->case->find($id);
+        $handle = $case->contact->twitter_handle;
+        $summaries = $case->summaries->sortByDesc('id');
+
+        return view('crm-launcher::cases.detail')
+            ->with('case', $case)
+            ->with('summaries', $summaries)
+            ->with('handle', $handle);
+    }
+
+    /**
      * Filters new/open/closed/own cases
      * @param  Request $request
      * @return view
@@ -128,9 +145,7 @@ class CasesController extends Controller
         if ($keywords && $results) {
             $cases = $results;
         } else {
-            if (! $results) {
-                $searchResult['bool'] = false;
-            }
+            $searchResult['bool'] = false;
             $cases = $this->case->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC');
         }
 
@@ -140,23 +155,6 @@ class CasesController extends Controller
             ->with('cases', $cases)
             ->with('searchResult', $searchResult)
             ->with('actives', static::$arActive);
-    }
-
-    /**
-     * Shows detail of case
-     * @param  integer $id
-     * @return view
-     */
-    public function detail($id)
-    {
-        $case = $this->case->find($id);
-        $handle = $case->contact->twitter_handle;
-        $summaries = $case->summaries->sortByDesc('id');
-
-        return view('crm-launcher::cases.detail')
-            ->with('case', $case)
-            ->with('summaries', $summaries)
-            ->with('handle', $handle);
     }
 
     /**
@@ -329,7 +327,6 @@ class CasesController extends Controller
             $case->status = 2;
             Session::flash('flash_success', trans('crm-launcher::success.case_closed'));
         }
-
         $case->save();
 
         return back();
@@ -490,7 +487,6 @@ class CasesController extends Controller
      */
     private function insertAnswer($type, $request, $case, $message, $reply, $handle)
     {
-
         $answer = new Answer();
         $answer->case_id = $case->id;
         $answer->user_id = Auth::user()->id;

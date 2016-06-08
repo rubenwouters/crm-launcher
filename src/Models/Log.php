@@ -13,6 +13,15 @@ class Log extends Model
      */
     protected $table = 'logs';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Log model
+    |
+    */
+
     public function scopeLatestLog($query, $type)
     {
         return $query->where('case_type', $type)->orderBy('id', 'DESC')->first()->created_at;

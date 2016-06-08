@@ -12,6 +12,14 @@ class Media extends Model
      */
     protected $table = 'media';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Media model
+    |
+    */
     public function message()
     {
         return $this->belongsTo('App\Message');

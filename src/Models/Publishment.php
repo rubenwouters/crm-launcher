@@ -12,10 +12,27 @@ class Publishment extends Model
      */
     protected $table = 'publishments';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Publishment model
+    |
+    */
     public function reactions()
     {
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\Reaction');
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of Publishment model
+    |
+    */
 
     public function scopeDouble($query, $content)
     {

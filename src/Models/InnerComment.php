@@ -13,7 +13,14 @@ class InnerComment extends Model
      */
     protected $table = 'inner_comments';
 
-    // DB relationships
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of InnerComment model
+    |
+    */
     public function caseOverview(){
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\CaseOverview');
     }
@@ -46,6 +53,14 @@ class InnerComment extends Model
         return $this->belongsTo('App\User');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Scope
+    |--------------------------------------------------------------------------
+    |
+    | Scope of InnerComment model
+    |
+    */
 
     public function scopeLatestInnerCommentDate($query)
     {

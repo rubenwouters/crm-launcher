@@ -13,7 +13,14 @@ class Message extends Model
      */
     protected $table = 'messages';
 
-    // DB relationships
+    /*
+    |--------------------------------------------------------------------------
+    | Relationships
+    |--------------------------------------------------------------------------
+    |
+    | Relationships of Message model
+    |
+    */
     public function caseOverview()
     {
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\CaseOverview');
@@ -44,7 +51,14 @@ class Message extends Model
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\InnerComment');
     }
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Scopes
+    |--------------------------------------------------------------------------
+    |
+    | Scopes of Message model
+    |
+    */
     public function scopelatestMentionId($query)
     {
         return $query->orderBy('tweet_id', 'DESC')->first()->tweet_id;
@@ -55,7 +69,14 @@ class Message extends Model
         return $query->where('direct_id', '!=', '')->orderBy('direct_id', 'DESC')->first()->direct_id;
     }
 
-
+    /*
+    |--------------------------------------------------------------------------
+    | Getters
+    |--------------------------------------------------------------------------
+    |
+    | Getters of Message model
+    |
+    */
     public function getNewestPostDate()
     {
         if (Message::where('fb_post_id', '!=', '')->exists()) {
