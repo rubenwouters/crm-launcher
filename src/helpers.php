@@ -55,7 +55,7 @@ function changeDateFormat($date)
  */
 function changeFbDateFormat($date)
 {
-     return date("Y-m-d H:i:s", strtotime("+0 hours", strtotime($date)));
+     return date("Y-m-d H:i:s", strtotime($date));
 }
 
 function filterUrl($message)
