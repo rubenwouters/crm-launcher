@@ -17,9 +17,13 @@ use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\Models\Log;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
+use Illuminate\Foundation\Validation\ValidatesRequests;
+
 
 class CasesController extends Controller
 {
+    use ValidatesRequests;
+
     /**
      * Pass active case filters to view
      * @var array
@@ -164,6 +168,10 @@ class CasesController extends Controller
      */
     public function replyTweet(Request $request, $id)
     {
+        $this->validate($request, [
+            'answer' => 'required',
+        ]);
+
         $case = $this->case->find($id);
         $handle = $case->contact->twitter_handle;
         $message = $case->messages->sortByDesc('id')->first();
@@ -202,6 +210,10 @@ class CasesController extends Controller
      */
     public function replyPost(Request $request, $caseId)
     {
+        $this->validate($request, [
+            'answer' => 'required',
+        ]);
+
         $case = $this->case->find($caseId);
         $this->updateLatestHelper($case);
 
@@ -235,6 +247,10 @@ class CasesController extends Controller
      */
     public function replyPrivate(Request $request, $caseId)
     {
+        $this->validate($request, [
+            'answer' => 'required',
+        ]);
+        
         $case = $this->case->find($caseId);
         $this->updateLatestHelper($case);
 
