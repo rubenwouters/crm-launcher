@@ -211,7 +211,8 @@ class CasesController extends Controller
     public function replyPost(Request $request, $caseId)
     {
         $this->validate($request, [
-            'answer' => 'required',
+            'answer' => 'sometimes|required',
+            'answer_specific' => 'sometimes|required',
         ]);
 
         $case = $this->case->find($caseId);
@@ -250,7 +251,7 @@ class CasesController extends Controller
         $this->validate($request, [
             'answer' => 'required',
         ]);
-        
+
         $case = $this->case->find($caseId);
         $this->updateLatestHelper($case);
 
