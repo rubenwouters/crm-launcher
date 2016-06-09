@@ -55,7 +55,7 @@ class UpdateAllCases {
     /**
      * @var Rubenwouters\CrmLauncher\Models\InnerComment
      */
-    protected $innercomment;
+    protected $innerComment;
 
     /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
@@ -98,6 +98,7 @@ class UpdateAllCases {
         $this->message = $message;
         $this->media = $media;
         $this->answer = $answer;
+        $this->innerComment = $innerComment;
         $this->twitterContent = $twitterContent;
         $this->facebookContent = $facebookContent;
     }
@@ -312,37 +313,40 @@ class UpdateAllCases {
         $messages = $this->getPosts();
 
         foreach ($messages as $key => $message) {
-            $comments = $this->facebookContent->fetchComments($newest, $message);
+            if ($message->fb_post_id != 0) {
 
-            if (! empty($comments->data)) {
-                foreach ($comments->data as $key => $comment) {
+                $comments = $this->facebookContent->fetchComments($newest, $message);
 
-                    if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
-                        && (!$newest || new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest))
-                    ) {
+                if (! empty($comments->data)) {
+                    foreach ($comments->data as $key => $comment) {
 
-                        if ($this->contact->FindByFbId($comment->from->id)->exists()) {
-                            $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
-                        } else {
-                            $contact = $this->contact->createContact('facebook', $comment);
-                        }
+                        if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
+                            && (!$newest || new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest))
+                        ) {
 
-                        if ($this->publishment->where('fb_post_id', $message->fb_post_id)->exists()) {
-                            $id = $this->publishment->where('fb_post_id', $message->fb_post_id)->first()->id;
-                            $reaction = $this->reaction->insertReaction('facebook', $comment, $id);
-                            $this->media->handleMedia($reaction->id, $comment, 'facebook_reactionInner');
-                        } else {
-                            $msg = new Message();
-                            $msg->fb_reply_id = $message->fb_post_id;
-                            $msg->post_date = changeFbDateFormat($comment->created_time);
-                            $msg->contact_id = $contact->id;
-                            $msg->fb_post_id = $comment->id;
-                            $msg->case_id = $message->case_id;
-                            $msg->message = $comment->message;
-                            $msg->save();
+                            if ($this->contact->FindByFbId($comment->from->id)->exists()) {
+                                $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
+                            } else {
+                                $contact = $this->contact->createContact('facebook', $comment);
+                            }
 
-                            $this->media->handleMedia($msg->id, $comment, 'facebook_comment');
-                            $this->updateCase($message->case_id, 'facebook', $comment->id);
+                            if ($this->publishment->where('fb_post_id', $message->fb_post_id)->exists()) {
+                                $id = $this->publishment->where('fb_post_id', $message->fb_post_id)->first()->id;
+                                $reaction = $this->reaction->insertReaction('facebook', $comment, $id);
+                                $this->media->handleMedia($reaction->id, $comment, 'facebook_reactionInner');
+                            } else {
+                                $msg = new Message();
+                                $msg->fb_reply_id = $message->fb_post_id;
+                                $msg->post_date = changeFbDateFormat($comment->created_time);
+                                $msg->contact_id = $contact->id;
+                                $msg->fb_post_id = $comment->id;
+                                $msg->case_id = $message->case_id;
+                                $msg->message = $comment->message;
+                                $msg->save();
+
+                                $this->media->handleMedia($msg->id, $comment, 'facebook_comment');
+                                $this->updateCase($message->case_id, 'facebook', $comment->id);
+                            }
                         }
                     }
                 }

@@ -34,4 +34,5 @@ return [
     '400' => "Authentication failed. Please try again to coninue.",
     'permission' => "Not all asked permissions were granted. Please grant all asked permissions.",
     'de-auth_own' => "It's not possible to de-authorize yourself.",
+    'login_right_account' => "The account you're loggin in with is not linked to the Facebook page.",
 ];

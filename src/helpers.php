@@ -230,7 +230,7 @@ function latestDirect()
 {
     $tweet_id = 0;
 
-    if (Message::where('direct_id', '!=', '')->exists()) {
+    if (Message::where('direct_id', '!=', '')->where('direct_id', '!=', '0')->exists()) {
         $tweet_id = Message::LatestDirectId();
     }
 

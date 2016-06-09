@@ -171,7 +171,13 @@ class FetchFacebookContent {
 
         try {
             $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
-            return json_decode($posts->getBody())->data[0]->id;
+            $posts = json_decode($posts->getBody());
+
+            if (count($posts->data)) {
+                return $posts->data[0]->id;
+            }
+
+            return false;
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
             return back();
@@ -189,7 +195,13 @@ class FetchFacebookContent {
 
         try {
             $privates = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/conversations?fields=id,updated_time&limit=1', $token);
-            return json_decode($privates->getBody())->data[0]->id;
+            $posts = json_decode($privates->getBody());
+
+            if (count($posts->data)) {
+                return $posts->data[0]->id;
+            }
+
+            return false;
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
             return back();

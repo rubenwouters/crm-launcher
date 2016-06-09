@@ -103,7 +103,6 @@ class CasesController extends Controller
     public function index()
     {
         $secondsAgo = $this->log->secondsAgo('fetching');
-
         if (! $secondsAgo) {
             $this->initIds();
         }
@@ -345,22 +344,29 @@ class CasesController extends Controller
             $mentionId = $this->twitterContent->newestMentionId();
             $directId = $this->twitterContent->newestDirectId();
 
-            $message->tweet_id = $mentionId;
-            $message->direct_id = $directId;
+            if ($mentionId) {
+                $message->tweet_id = $mentionId;
+            }
+            if ($directId) {
+                $message->direct_id = $directId;
+            }
         }
 
         if (isFacebookLinked()) {
 
             $postId = $this->facebookContent->newestPostId();
             $conversationId = $this->facebookContent->newestConversationId();
+            if ($postId) {
+                $message->fb_post_id = $postId;
+            }
 
-            $message->fb_post_id = $postId;
-            $message->fb_private_id = $conversationId;
+            if ($conversationId) {
+                $message->fb_private_id = $conversationId;
+            }
         }
 
         $message->post_date = Carbon::now();
         $message->save();
-
         $this->log->updateLog('fetching');
     }
 

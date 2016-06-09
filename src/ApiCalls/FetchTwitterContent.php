@@ -114,8 +114,13 @@ class FetchTwitterContent {
 
         try {
             $mentions = $client->get('statuses/mentions_timeline.json?count=1');
-            return json_decode($mentions->getBody(), true)[0]['id_str'];
+            $mentions = json_decode($mentions->getBody(), true);
 
+            if (count($mentions)) {
+                return $mentions[0]['id_str'];
+            }
+
+            return false;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
 
             getErrorMessage($e->getResponse()->getStatusCode());
@@ -134,10 +139,15 @@ class FetchTwitterContent {
 
         try {
             $directs = $client->get('direct_messages.json?count=1');
-            return json_decode($directs->getBody(), true)[0]['id_str'];
+            $directs = json_decode($directs->getBody(), true);
+
+            if (count($directs)) {
+                return $directs[0]['id_str'];
+            }
+
+            return false;
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-
             getErrorMessage($e->getResponse()->getStatusCode());
 
             return back();

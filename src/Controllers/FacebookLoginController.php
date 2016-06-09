@@ -62,12 +62,18 @@ class FacebookLoginController extends Controller
         try {
             $response = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '?fields=access_token', $userToken);
             $response = json_decode($response->getBody());
+
+            if (isset($response->access_token)) {
+                return $response->access_token;
+            }
+
+            getErrorMessage('login_right_account');
+
         } catch (Exception $e) {
             getErrorMessage('permission');
             return false;
         }
 
-        return $response->access_token;
     }
 
     /**

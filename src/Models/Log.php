@@ -44,6 +44,8 @@ class Log extends Model
             $log->case_type = "fetching";
         } else if ($type == 'dashboard_update') {
             $log->case_type = "dashboard_update";
+        } else if ($type == 'stats') {
+            $log->case_type = 'stats';
         } else if ($type == 'publishments') {
             $log->case_type = 'publishments';
         } else if ($type == 'publishment_detail') {
