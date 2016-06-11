@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class CaseOverview extends Model
 {
+    const ITEM_PER_PAGE = 12;
+
     /**
      * table name
      * @var string
@@ -66,12 +68,12 @@ class CaseOverview extends Model
     */
     public function scopeAllCases($query)
     {
-        return $query->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC')->paginate(12);
+        return $query->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC')->paginate(self::ITEM_PER_PAGE);
     }
 
     public function scopeVisibleCases($query)
     {
-        return $query->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(12);
+        return $query->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(self::ITEM_PER_PAGE);
     }
 
     public function scopePrivateFbMessages($query, $contact)
@@ -111,13 +113,13 @@ class CaseOverview extends Model
         $case = new CaseOverview();
         $case->contact_id = $contact->id;
 
-        if ($type == 'twitter_mention') {
-            $case->origin = "Twitter mention";
-        } else if ($type == 'twitter_direct') {
-            $case->origin = "Twitter direct";
-        } else if ($type == 'facebook_post') {
-            $case->origin = "Facebook post";
-        } else if ($type == "facebook_private") {
+        if ($type == TWITTER_MENTION) {
+            $case->origin = 'Twitter mention';
+        } else if ($type == TWITTER_DIRECT) {
+            $case->origin = 'Twitter direct';
+        } else if ($type == FACEBOOK_POST) {
+            $case->origin = 'Facebook post';
+        } else if ($type == FACEBOOK_PRIVATE) {
             $case->origin = 'Facebook private';
         }
 

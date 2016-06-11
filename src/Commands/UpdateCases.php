@@ -4,7 +4,6 @@ namespace Rubenwouters\CrmLauncher\Commands;
 
 use Illuminate\Console\Command;
 use Rubenwouters\CrmLauncher\Models\Log;
-use Rubenwouters\CrmLauncher\Models\Contact;
 use Rubenwouters\CrmLauncher\Updates\UpdateAllCases;
 
 class UpdateCases extends Command
@@ -38,7 +37,8 @@ class UpdateCases extends Command
     /**
      * Create a new command instance.
      *
-     * @return void
+     * @param Log $log
+     * @param UpdateAllCases $update
      */
     public function __construct(Log $log, UpdateAllCases $update)
     {

@@ -25,7 +25,8 @@
             "Rubenwouters\\CrmLauncher\\database\\": "database/"
         },
         "files": [
-           "src/helpers.php"
+           "src/helpers.php",
+           "src/constants.php"
        ]
    }
 }

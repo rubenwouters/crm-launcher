@@ -25,7 +25,8 @@ class UpdateDashboardStats extends Command
     /**
      * Create a new command instance.
      *
-     * @return void
+     * @param Log $log
+     * @param UpdateStatistics $stats
      */
     public function __construct(
         Log $log,
