@@ -3,7 +3,6 @@
 namespace Rubenwouters\CrmLauncher\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Message extends Model
 {
@@ -87,6 +86,9 @@ class Message extends Model
         return 0;
     }
 
+    /**
+     * @return int
+     */
     public function getNewestMessageDate()
     {
         if (Message::where('fb_private_id', '!=', '')->exists()) {
@@ -94,6 +96,7 @@ class Message extends Model
                 ->orderBy('post_date', 'DESC')
                 ->first()->post_date;
         }
+
         return 0;
     }
 }

@@ -57,13 +57,15 @@ class Contact extends Model
 
     /**
      * Inserts new contact in DB
+     *
      * @param  string $type
      * @param  array $message
+     *
      * @return object
      */
     public function createContact($type, $message)
     {
-        if ($type == "twitter_mention") {
+        if ($type == TWITTER_MENTION) {
 
             $contact = $this->getContact('twitter', $message['user']['id_str']);
             $contact->name = $message['user']['name'];
@@ -71,7 +73,7 @@ class Contact extends Model
             $contact->twitter_id =  $message['user']['id_str'];
             $contact->profile_picture = $message['user']['profile_image_url'];
 
-        } else if ($type == "twitter_direct") {
+        } else if ($type == TWITTER_DIRECT) {
 
             $contact = $this->getContact('twitter', $message['sender']['id_str']);
             $contact->name = $message['sender']['name'];
@@ -79,7 +81,7 @@ class Contact extends Model
             $contact->twitter_id =  $message['sender']['id_str'];
             $contact->profile_picture = $message['sender']['profile_image_url'];
 
-        } else if ($type == "facebook") {
+        } else if ($type == FACEBOOK) {
 
             $contact = $this->getContact('facebook', $message->from->id);
             $contact->name = $message->from->name;
@@ -94,20 +96,22 @@ class Contact extends Model
 
     /**
      * Check if contact exists, if not create a new user
+     *
      * @param  string  $type
      * @param  string  $id
-     * @return collection
+     *
+     * @return object
      */
-    public function getContact($type, $id) {
-        if ($type == 'twitter' && Contact::where('twitter_id', $id)->exists()) {
+    public function getContact($type, $id)
+    {
+        if ($type == TWITTER && Contact::where('twitter_id', $id)->exists()) {
 
             return Contact::findByTwitterId($id);
-        } else if ($type == 'facebook' && Contact::where('facebook_id', $id)->exists()) {
+        } else if ($type == FACEBOOK && Contact::where('facebook_id', $id)->exists()) {
 
             return Contact::findByFbId($id);
         }
 
         return new Contact();
     }
-
 }

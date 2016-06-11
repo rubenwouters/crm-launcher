@@ -29,27 +29,29 @@ class Log extends Model
 
     public function scopeDashboardUpdate($query)
     {
-        return $query->where('case_type', 'dashboard_update');
+        return $query->where('case_type', DASHBOARD_UPDATE);
     }
 
     /**
      * Updates logs to keep track of API rate limits
+     *
      * @param  string $type
+     *
      * @return void
      */
     public function updateLog($type)
     {
         $log = new Log();
-        if ($type == 'fetching') {
-            $log->case_type = "fetching";
-        } else if ($type == 'dashboard_update') {
-            $log->case_type = "dashboard_update";
-        } else if ($type == 'stats') {
-            $log->case_type = 'stats';
-        } else if ($type == 'publishments') {
-            $log->case_type = 'publishments';
-        } else if ($type == 'publishment_detail') {
-            $log->case_type = 'publishment_detail';
+        if ($type == FETCHING) {
+            $log->case_type = FETCHING;
+        } else if ($type == DASHBOARD_UPDATE) {
+            $log->case_type = DASHBOARD_UPDATE;
+        } else if ($type == STATS) {
+            $log->case_type = STATS;
+        } else if ($type == PUBLISHMENTS) {
+            $log->case_type = PUBLISHMENTS;
+        } else if ($type == PUBLISHMENT_DETAIL) {
+            $log->case_type = PUBLISHMENT_DETAIL;
         }
 
         $log->save();

@@ -52,10 +52,12 @@ class Reaction extends Model
 
     /**
      * Insert reaction in DB (eiter from a Facebook post or Tweet)
+     *
      * @param  string $type
-     * @param  object $mention
+     * @param  array $mention
      * @param  integer $id
      * @param  string $answer
+     *
      * @return object
      */
     public function insertReaction($type, $mention, $id, $answer = null)
@@ -67,7 +69,7 @@ class Reaction extends Model
             $reaction->user_id = Auth::user()->id;
         }
 
-        if ($type == 'twitter') {
+        if ($type == TWITTER) {
             if ($mention['user']['id_str'] != Configuration::twitterId()) {
                 $reaction->user_id = $mention['user']['id_str'];
             }
@@ -89,6 +91,7 @@ class Reaction extends Model
                 $reaction->post_date = Carbon::now();
             }
         }
+
         $reaction->save();
 
         return $reaction;

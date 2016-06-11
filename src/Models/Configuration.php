@@ -32,7 +32,7 @@ class Configuration extends Model
 
     /**
      * Inserts Twitter id & screen name in configuration table
-     * @param  collection $verification
+     * @param array $verification
      * @return void
      */
     public function insertTwitterId($verification)

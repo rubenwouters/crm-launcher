@@ -121,7 +121,8 @@ class UpdateAllCases {
 
     /**
      * Gets all posts on Facebook
-     * @return view
+     *
+     * @return void
      */
     public function collectPosts()
     {
@@ -129,8 +130,8 @@ class UpdateAllCases {
         $posts = $this->facebookContent->fetchPosts($newestPost);
 
         foreach ($posts->data as $key => $post) {
-            $contact = $this->contact->createContact('facebook', $post);
-            $case = $this->case->createCase('facebook_post', $post, $contact);
+            $contact = $this->contact->createContact(FACEBOOK, $post);
+            $case = $this->case->createCase(FACEBOOK_POST, $post, $contact);
 
             $message = new Message();
             $message->contact_id = $contact->id;
@@ -143,7 +144,7 @@ class UpdateAllCases {
             $message->post_date = changeFbDateFormat($post->created_time);
             $message->save();
 
-            $this->media->handleMedia($message->id, $post, 'facebook');
+            $this->media->handleMedia($message->id, $post, FACEBOOK);
         }
 
         $newestComment = latestCommentDate();
@@ -154,6 +155,7 @@ class UpdateAllCases {
 
     /**
      * Gets all public mentions on Twitter
+     *
      * @return void
      */
     public function collectMentions()
@@ -167,14 +169,14 @@ class UpdateAllCases {
             $message = new Message();
 
             if ($inReplyTo == null) {
-                $contact = $this->contact->createContact('twitter_mention', $mention);
-                $case = $this->case->createCase('twitter_mention', $mention, $contact);
+                $contact = $this->contact->createContact(TWITTER_MENTION, $mention);
+                $case = $this->case->createCase(TWITTER_MENTION, $mention, $contact);
             }
 
             if (($this->answer->where('tweet_id', $inReplyTo)->exists() || $this->message->where('tweet_id', $inReplyTo)->exists())
                 && $inReplyTo != null
             ) {
-                $contact = $this->contact->createContact('twitter_mention', $mention);
+                $contact = $this->contact->createContact(TWITTER_MENTION, $mention);
                 $message->contact_id = $contact->id;
 
                 if ($this->answer->where('tweet_id', $inReplyTo)->exists()) {
@@ -208,6 +210,7 @@ class UpdateAllCases {
 
     /**
      * Fetch mentions from Twitter
+     *
      * @return void
      */
     private function fetchSpecificMention($mention)
@@ -218,13 +221,14 @@ class UpdateAllCases {
         if (($publishment->tweet_id == $mention['in_reply_to_status_id_str'] || $this->reaction->where('tweet_id', $mention['in_reply_to_status_id_str'])->exists())
             && $publishment->tweet_id != null
         ) {
-            $reaction = $this->reaction->insertReaction('twitter', $mention, $publishment->id);
-            $this->media->handleMedia($reaction->id, $mention, 'twitter_reaction');
+            $reaction = $this->reaction->insertReaction(TWITTER, $mention, $publishment->id);
+            $this->media->handleMedia($reaction->id, $mention, TWITTER_REACTION);
         }
     }
 
     /**
      * Gets all direct (private) messages on Twitter
+     *
      * @return void
      */
     public function collectDirectMessages()
@@ -241,14 +245,14 @@ class UpdateAllCases {
                 if (count($contact->cases)) {
                     $case = $contact->cases()->where('origin', 'Twitter direct')->orderBy('id', 'DESC')->first();
                 } else {
-                    $case = $this->case->createCase('twitter_direct', $direct, $contact);
+                    $case = $this->case->createCase(TWITTER_DIRECT, $direct, $contact);
                 }
 
                 $message->case_id = $case->id;
                 $this->case->openCase($case);
             } else {
-                $contact = $this->contact->createContact('twitter_direct', $direct);
-                $case = $this->case->createCase('twitter_direct', $direct, $contact);
+                $contact = $this->contact->createContact(TWITTER_DIRECT, $direct);
+                $case = $this->case->createCase(TWITTER_DIRECT, $direct, $contact);
                 $message->case_id = $case->id;
             }
 
@@ -265,8 +269,10 @@ class UpdateAllCases {
 
     /**
      * Get the messages out of a conversation
+     *
      * @param  object $conversation
      * @param  datetime $newest
+     *
      * @return void
      */
     private function collectPrivateMessages($conversation, $newest)
@@ -277,7 +283,7 @@ class UpdateAllCases {
             if ($result->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
                 && changeFbDateFormat($result->created_time) > $newest
             ) {
-                $contact = $this->contact->createContact('facebook', $result);
+                $contact = $this->contact->createContact(FACEBOOK, $result);
 
                 if ($this->case->PrivateFbMessages($contact)->exists()) {
                     $case = $this->case->PrivateFbMessages($contact)->first();
@@ -286,7 +292,7 @@ class UpdateAllCases {
                     $case->status = 0;
                     $case->save();
                 } else {
-                    $case = $this->case->createCase('facebook_private', $result, $contact);
+                    $case = $this->case->createCase(FACEBOOK_PRIVATE, $result, $contact);
                 }
 
                 $message = new Message();
@@ -298,15 +304,17 @@ class UpdateAllCases {
                 $message->post_date = changeFbDateFormat($result->created_time);
                 $message->save();
 
-                $this->media->handleMedia($message->id, $result, 'facebook_comment');
+                $this->media->handleMedia($message->id, $result, FACEBOOK_COMMENT);
             }
         }
     }
 
     /**
      * Fetch comments on post form Facebook
+     *
      * @param  datetime $newest
-     * @return return collection
+     *
+     * @return void
      */
     private function fetchComments($newest)
     {
@@ -327,13 +335,13 @@ class UpdateAllCases {
                             if ($this->contact->FindByFbId($comment->from->id)->exists()) {
                                 $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
                             } else {
-                                $contact = $this->contact->createContact('facebook', $comment);
+                                $contact = $this->contact->createContact(FACEBOOK, $comment);
                             }
 
                             if ($this->publishment->where('fb_post_id', $message->fb_post_id)->exists()) {
                                 $id = $this->publishment->where('fb_post_id', $message->fb_post_id)->first()->id;
-                                $reaction = $this->reaction->insertReaction('facebook', $comment, $id);
-                                $this->media->handleMedia($reaction->id, $comment, 'facebook_reactionInner');
+                                $reaction = $this->reaction->insertReaction(FACEBOOK, $comment, $id);
+                                $this->media->handleMedia($reaction->id, $comment, FACEBOOK_REACTIONINNER);
                             } else {
                                 $msg = new Message();
                                 $msg->fb_reply_id = $message->fb_post_id;
@@ -344,8 +352,8 @@ class UpdateAllCases {
                                 $msg->message = $comment->message;
                                 $msg->save();
 
-                                $this->media->handleMedia($msg->id, $comment, 'facebook_comment');
-                                $this->updateCase($message->case_id, 'facebook', $comment->id);
+                                $this->media->handleMedia($msg->id, $comment, FACEBOOK_COMMENT);
+                                $this->updateCase($message->case_id, FACEBOOK, $comment->id);
                             }
                         }
                     }
@@ -356,15 +364,17 @@ class UpdateAllCases {
 
     /**
      * Update case with newest Facebook or Tweet id
+     *
      * @param  integer $caseId
      * @param  integer $messageId
+     *
      * @return void
      */
     private function updateCase($caseId, $type, $messageId)
     {
         $case = $this->case->find($caseId);
 
-        if ($type == 'twitter') {
+        if ($type == TWITTER) {
             $case->latest_tweet_id = $messageId;
         } else {
             $case->latest_fb_id = $messageId;
@@ -375,7 +385,8 @@ class UpdateAllCases {
 
     /**
      * Return all facebook posts (merges messages & publishments)
-     * @return [type] [description]
+     *
+     * @return object
      */
     private function getPosts()
     {
@@ -399,7 +410,9 @@ class UpdateAllCases {
 
     /**
      * Fetch inner comments of facebook
+     *
      * @param  datetime $newest
+     *
      * @return void
      */
     private function fetchInnerComments($newest)
@@ -418,7 +431,7 @@ class UpdateAllCases {
                     && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
                 ) {
                     if (! $this->contact->findByFbId($comment->from->id)->exists()) {
-                        $contact = $this->contact->createContact('facebook', $comment);
+                        $contact = $this->contact->createContact(FACEBOOK, $comment);
                     } else {
                         $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
                     }
@@ -440,12 +453,17 @@ class UpdateAllCases {
                     $innerComment->message = $comment->message;
                     $innerComment->save();
 
-                    $this->media->handleMedia($innerComment->id, $comment, 'facebook_innerComment');
+                    $this->media->handleMedia($innerComment->id, $comment, FACEBOOK_INNERCOMMENT);
                 }
             }
         }
     }
 
+    /**
+     * Get comments
+     *
+     * @return mixed
+     */
     private function getComments()
     {
         $collection = collect();
