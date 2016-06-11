@@ -5,8 +5,6 @@ namespace Rubenwouters\CrmLauncher\Controllers;
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use \Exception;
-use DateTime;
 use Session;
 use Auth;
 use Rubenwouters\CrmLauncher\Models\Contact;
@@ -23,6 +21,12 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 class CasesController extends Controller
 {
     use ValidatesRequests;
+
+    const CONTINUE_STATUS_CODE = 100;
+    const ITEM_PER_PAGE = 12;
+    const TYPE_TWEET = 'tweet';
+    const TYPE_FACEBOOK_POST = 'facebook_post';
+    const TYPE_FACEBOOK_PRIVATE = 'facebook_private';
 
     /**
      * Pass active case filters to view
@@ -71,6 +75,8 @@ class CasesController extends Controller
     protected $facebookContent;
 
     /**
+     * Initialize Controller
+     *
      * @param Rubenwouters\CrmLauncher\Models\Log  $log
      * @param Rubenwouters\CrmLauncher\Models\Case $case
      * @param Rubenwouters\CrmLauncher\Models\Answer $answer
@@ -102,6 +108,7 @@ class CasesController extends Controller
 
     /**
     * Shows cases overview
+     *
     * @return view
     */
     public function index()
@@ -117,7 +124,9 @@ class CasesController extends Controller
 
     /**
      * Shows detail of case
+     *
      * @param  integer $id
+     *
      * @return view
      */
     public function detail($id)
@@ -134,7 +143,9 @@ class CasesController extends Controller
 
     /**
      * Filters new/open/closed/own cases
+     *
      * @param  Request $request
+     *
      * @return view
      */
     public function filter(Request $request)
@@ -162,9 +173,11 @@ class CasesController extends Controller
 
     /**
      * Posts the reply (public or private tweets)
+     *
      * @param  Request $request
      * @param  integer  $id
-     * @return void
+     *
+     * @return \Illuminate\View\View
      */
     public function replyTweet(Request $request, $id)
     {
@@ -181,7 +194,7 @@ class CasesController extends Controller
         if (isset($message->tweet_id)) {
             $tweetId = $message->tweet_id;
         } else {
-            getErrorMessage("100");
+            getErrorMessage(self::CONTINUE_STATUS_CODE);
 
             return back();
         }
@@ -197,16 +210,18 @@ class CasesController extends Controller
         }
 
         $reply = $this->twitterContent->answerTweet($request, $type, $tweetId, $handle);
-        $this->insertAnswer('tweet', $request, $case, $message, $reply, $handle);
+        $this->insertAnswer(self::TYPE_TWEET, $request, $case, $message, $reply, $handle);
 
         return back();
     }
 
     /**
      * Reply to post on Facebook (either a comment or an inner-comment)
+     *
      * @param  Request $request
      * @param  integer $caseId
-     * @return void
+     *
+     * @return \Illuminate\View\View
      */
     public function replyPost(Request $request, $caseId)
     {
@@ -232,7 +247,7 @@ class CasesController extends Controller
         if ($request->input('in_reply_to') != '') {
             $this->insertInnerComment($request, $messageId, $reply);
         } else {
-            $this->insertAnswer('facebook_post', $request, $case, $answer_to, $reply, null);
+            $this->insertAnswer(self::TYPE_FACEBOOK_POST, $request, $case, $answer_to, $reply, null);
         }
 
         $this->case->openCase($case);
@@ -242,9 +257,11 @@ class CasesController extends Controller
 
     /**
      * Reply to private message
+     *
      * @param  Request $request
      * @param  integer  $caseId
-     * @return view
+     *
+     * @return \Illuminate\View\View
      */
     public function replyPrivate(Request $request, $caseId)
     {
@@ -259,15 +276,17 @@ class CasesController extends Controller
         $answer = $request->input('answer');
 
         $reply = $this->facebookContent->answerPrivate($conversation, $answer);
-        $this->insertAnswer('facebook_private', $request, $case, $conversation, $reply, null);
+        $this->insertAnswer(self::TYPE_FACEBOOK_PRIVATE, $request, $case, $conversation, $reply, null);
 
         return back();
     }
 
     /**
      * Follow user on Twitter
+     *
      * @param  integer $caseId
-     * @return view
+     *
+     * @return \Illuminate\View\View
      */
     public function toggleFollowUser($caseId)
     {
@@ -281,9 +300,11 @@ class CasesController extends Controller
 
     /**
      * Delete tweet on Twitter & in database
+     *
      * @param  integer $caseId
      * @param  integer $messageId
-     * @return view
+     *
+     * @return \Illuminate\View\View
      */
     public function deleteTweet($caseId, $messageId)
     {
@@ -297,9 +318,11 @@ class CasesController extends Controller
 
     /**
      * Delete Facebook post
+     *
      * @param  integer $caseId
      * @param  integer $messageId
-     * @return view
+     *
+     * @return \Illuminate\View\View
      */
     public function deletePost($caseId, $messageId)
     {
@@ -313,9 +336,11 @@ class CasesController extends Controller
 
     /**
      * Delete inner Facebook post
+     *
      * @param  integer $caseId
      * @param  integer $messageId
-     * @return view
+     *
+     * @return \Illuminate\View\View
      */
     public function deleteInner($caseId, $messageId)
     {
@@ -329,8 +354,10 @@ class CasesController extends Controller
 
     /**
      * Toggle close/open case
+     *
      * @param  integer $caseId
-     * @return view
+     *
+     * @return \Illuminate\View\View
      */
     public function toggleCase($caseId)
     {
@@ -350,6 +377,7 @@ class CasesController extends Controller
 
     /**
      * Get most recent id's for Twitter & Facebook
+     *
      * @return void
      */
     private function initIds()
@@ -389,8 +417,10 @@ class CasesController extends Controller
 
     /**
      * Searches trough cases
+     *
      * @param  Request $request
-     * @return Builder
+     *
+     * @return bool|Builder
      */
     private function searchByKeywords(Request $request)
     {
@@ -399,7 +429,7 @@ class CasesController extends Controller
 
         if (is_numeric($keywords)) {
             $query = $this->case->where('id', $keywords);
-        } else if (strpos($keywords, 'tweet') !== false || strpos($keywords, 'twitter') !== false) {
+        } else if (strpos($keywords, self::TYPE_TWEET) !== false || strpos($keywords, 'twitter') !== false) {
             $query = $this->case->where('origin', 'Twitter mention')->orWhere('origin', 'Twitter direct');
         } else if (strpos($keywords, 'fb') !== false || strpos($keywords, 'facebook') !== false || strpos($keywords, 'post') !== false) {
             $query = $this->case->where('origin', 'Facebook post');
@@ -430,8 +460,10 @@ class CasesController extends Controller
 
     /**
      * Filter search results by case type
+     *
      * @param  array $cases
      * @param  Request $request
+     *
      * @return object
      */
     private function searchByCaseType($cases, $request)
@@ -446,15 +478,15 @@ class CasesController extends Controller
                 }
             });
 
-            $cases = $cases->orderBy('id', 'DESC')->paginate(12);
+            $cases = $cases->orderBy('id', 'DESC')->paginate(self::ITEM_PER_PAGE);
 
             if (in_array('my_cases', $caseTypes)) {
                 unset($arActive);
-                $cases = Auth::user()->cases()->where('status', '1')->paginate(12);
+                $cases = Auth::user()->cases()->where('status', '1')->paginate(self::ITEM_PER_PAGE);
                 $arActive[0] = 'my_cases';
             }
         } else {
-            $cases = $cases->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(12);
+            $cases = $cases->orderBy('updated_at', 'DESC')->where('status', '!=', '2')->orderBy('id', 'DESC')->paginate(self::ITEM_PER_PAGE);
         }
 
         return $cases;
@@ -462,7 +494,9 @@ class CasesController extends Controller
 
     /**
      * Update "latest helper" field
+     *
      * @param  object $case
+     *
      * @return void
      */
     private function updateLatestHelper($case)
@@ -473,9 +507,11 @@ class CasesController extends Controller
 
     /**
      * Insert inner comment in DB
+     *
      * @param  Request $request
      * @param  integer $messageId
      * @param  object $reply
+     *
      * @return void
      */
     private function insertInnerComment($request, $messageId, $reply)
@@ -494,18 +530,20 @@ class CasesController extends Controller
         $innerComment->fb_post_id = $reply->id;
         $innerComment->fb_reply_id = $messageId;
         $innerComment->message = $request->input('answer_specific');
-        $innerComment->post_date = date('Y-m-d H:i:s');
+        $innerComment->post_date = Carbon::now();
         $innerComment->save();
     }
 
     /**
      * Inserts answer to database
+     *
      * @param  string $type
-     * @param  request $request
+     * @param  Request $request
      * @param  object $case
      * @param  string $message
      * @param  string $reply
      * @param  string $handle
+     *
      * @return void
      */
     private function insertAnswer($type, $request, $case, $message, $reply, $handle)
@@ -522,7 +560,7 @@ class CasesController extends Controller
             $answer->message_id = $message->id;
         }
 
-        if ($type == 'tweet') {
+        if ($type == self::TYPE_TWEET) {
             $answer->tweet_id = $reply['id_str'];
 
             if ($case->origin == 'Twitter mention') {
@@ -532,10 +570,10 @@ class CasesController extends Controller
                     $answer->tweet_reply_id = 0;
                 }
             }
-        } else if ($type == 'facebook_post') {
+        } else if ($type == self::TYPE_FACEBOOK_POST) {
             $answer->fb_post_id = $reply->id;
             $answer->fb_reply_id = $message->fb_post_id;
-        } else if ($type == 'facebook_private') {
+        } else if ($type == self::TYPE_FACEBOOK_PRIVATE) {
             $answer->fb_private_id = $reply->id;
             $answer->fb_reply_id = $message->fb_conversation_id;
         }
@@ -547,7 +585,9 @@ class CasesController extends Controller
 
     /**
      * Links case to user (person who replied)
-     * @param  integer $case
+     *
+     * @param object $case
+     *
      * @return void
      */
     private function linkCaseToUser($case)

@@ -31,6 +31,7 @@ class UsersController extends Controller
 
     /**
      * Returns team overview
+     *
      * @return view
      */
     public function index()
@@ -42,6 +43,7 @@ class UsersController extends Controller
 
     /**
      * returns add user view
+     *
      * @return view
      */
     public function addUser()
@@ -51,7 +53,10 @@ class UsersController extends Controller
 
     /**
      * Creates new team member
+     *
      * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function postUser(Request $request)
     {
@@ -73,7 +78,9 @@ class UsersController extends Controller
 
     /**
      * Toggle users permission to view CRM
+     *
      * @param  integer $id
+     *
      * @return void
      */
     public function toggleUser($id)
@@ -93,8 +100,10 @@ class UsersController extends Controller
 
     /**
      * Search user by name or e-mail
+     *
      * @param  Request $request
-     * @return collection
+     *
+     * @return view
      */
     public function searchUser(Request $request)
     {
