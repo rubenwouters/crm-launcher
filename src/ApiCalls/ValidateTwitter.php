@@ -2,19 +2,19 @@
 
 namespace Rubenwouters\CrmLauncher\ApiCalls;
 
-use Datetime;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 
-class ValidateTwitter {
+class ValidateTwitter
+{
+    const TOO_MANY_REQUEST_CODE = 429;
 
     /**
-     * Contact implementation
-     * @var Rubenwouters\CrmLauncher\Models\Contact
+     * @var Configuration
      */
-    protected $contact;
+    protected $config;
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Configuration $config
+     * @param \Rubenwouters\CrmLauncher\Models\Configuration $config
      */
     public function __construct(Configuration $config)
     {
@@ -42,9 +42,10 @@ class ValidateTwitter {
 
             return true;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-            if ($e->getCode() == 429) {
+            if ($e->getCode() == self::TOO_MANY_REQUEST_CODE) {
                 getErrorMessage($e->getResponse()->getStatusCode());
             }
+
             return false;
         }
     }

@@ -7,10 +7,13 @@ use Illuminate\Routing\Controller;
 use App\Http\Requests;
 use Socialite;
 use Carbon\Carbon;
+use Exception;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 
 class FacebookLoginController extends Controller
 {
+    protected $config;
+
     /**
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      */
@@ -30,7 +33,8 @@ class FacebookLoginController extends Controller
 
     /**
      * Handles redirect by Facebook after login. Inserts Facebook page Access token
-     * @return view
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function fbCallback()
     {
@@ -42,7 +46,6 @@ class FacebookLoginController extends Controller
             if ($pageAccessToken) {
                 $this->insertFbToken($pageAccessToken);
             }
-
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             getErrorMessage($e->getResponse()->getStatusCode());
         }
@@ -52,8 +55,10 @@ class FacebookLoginController extends Controller
 
     /**
      * Uses user access token to become never-expiring page access token.
+     *
      * @param  string $userToken
-     * @return string (page access token)
+     *
+     * @return bool|string (page access token)
      */
     private function getPageAccessToken($userToken)
     {
@@ -78,7 +83,9 @@ class FacebookLoginController extends Controller
 
     /**
      * Insert Facebook access token
+     *
      * @param  string $token
+     *
      * @return void
      */
     private function insertFbToken($token)

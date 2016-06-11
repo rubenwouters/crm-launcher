@@ -4,11 +4,17 @@ namespace Rubenwouters\CrmLauncher\ApiCalls;
 
 use Rubenwouters\CrmLauncher\Models\Configuration;
 use Session;
+use Exception;
 
-class FetchFacebookContent {
+class FetchFacebookContent
+{
+    /**
+     * @var Configuration
+     */
+    protected $config;
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Configuration $config
+     * @param \Rubenwouters\CrmLauncher\Models\Configuration $config
      */
     public function __construct(Configuration $config)
     {
@@ -17,8 +23,10 @@ class FetchFacebookContent {
 
     /**
      * Fetch Facebook posts
-     * @param  integer $page
-     * @return array
+     *
+     * @param object $post
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchFbStats($post)
     {
@@ -38,7 +46,8 @@ class FetchFacebookContent {
 
     /**
      * Get Facebook page likes
-     * @return integer
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchLikes()
     {
@@ -57,8 +66,10 @@ class FetchFacebookContent {
 
     /**
      * Fetch posts from Facebook
+     *
      * @param  datetime $newest
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchPosts($newest)
     {
@@ -71,6 +82,7 @@ class FetchFacebookContent {
             } else {
                 $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
             }
+
             return json_decode($posts->getBody());
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
@@ -80,7 +92,7 @@ class FetchFacebookContent {
 
     /**
      * Fetches all private conversations from Facebook
-     * @return array
+     * @return array|\Illuminate\View\View
      */
     public function fetchPrivateConversations()
     {
@@ -99,7 +111,7 @@ class FetchFacebookContent {
     /**
      * Fetch all private messages
      * @param  object $conversation
-     * @return array
+     * @return array|\Illuminate\View\View
      */
     public function fetchPrivateMessages($conversation)
     {
@@ -117,9 +129,11 @@ class FetchFacebookContent {
 
     /**
      * Fetch comments on post
+     *
      * @param  datetime $newest
      * @param  object $message
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchComments($newest, $message)
     {
@@ -140,9 +154,11 @@ class FetchFacebookContent {
 
     /**
      * Fetch inner comments
+     *
      * @param  datetime $newest
      * @param  integer $postId
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchInnerComments($newest, $postId)
     {
@@ -162,7 +178,8 @@ class FetchFacebookContent {
 
     /**
      * Get newest post ID (Facebook)
-     * @return integer
+     *
+     * @return integer|bool|\Illuminate\View\View
      */
     public function newestPostId()
     {
@@ -186,7 +203,8 @@ class FetchFacebookContent {
 
     /**
      * Get newest conversation id
-     * @return integer
+     *
+     * @return integer|bool|\Illuminate\View\View
      */
     public function newestConversationId()
     {
@@ -210,8 +228,10 @@ class FetchFacebookContent {
 
     /**
      * Publish post
+     *
      * @param  string $post
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function publishPost($post)
     {
@@ -221,7 +241,6 @@ class FetchFacebookContent {
         try {
             $publishment = $fb->post('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/feed?&message=' . $post, ['access_token' => $token]);
             return json_decode($publishment->getBody());
-
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
             return back();
@@ -230,9 +249,11 @@ class FetchFacebookContent {
 
     /**
      * Answer to Facebook post
+     *
      * @param  string $answer
      * @param  integer $messageId
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function answerPost($answer, $messageId)
     {
@@ -243,7 +264,6 @@ class FetchFacebookContent {
             $reply = $fb->post('/' . $messageId . '/comments?message=' . rawurlencode($answer) , array('access_token' => $token));
             Session::flash('flash_success', trans('crm-launcher::success.post_sent'));
             return json_decode($reply->getBody());
-
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
             return back();
@@ -252,9 +272,11 @@ class FetchFacebookContent {
 
     /**
      * Answer private Facebook message
+     *
      * @param  object $conversation
      * @param  string $answer
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function answerPrivate($conversation, $answer)
     {
@@ -275,8 +297,10 @@ class FetchFacebookContent {
 
     /**
      * Deletes post
-     * @param  collection $post
-     * @return view
+     *
+     * @param  object $post
+     *
+     * @return \Illuminate\View\View
      */
     function deleteFbPost($post)
     {
@@ -288,7 +312,8 @@ class FetchFacebookContent {
             Session::flash('flash_success', trans('crm-launcher::success.post_deleted'));
         } catch (Exception $e) {
             getErrorMessage($e->getCode());
-            return back();
         }
+
+        return back();
     }
 }
