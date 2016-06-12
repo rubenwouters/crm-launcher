@@ -173,9 +173,9 @@ function isTwitterEnvFilledOut()
  */
 function isFbEnvFilledOut()
 {
-    if (! config('crm-launcher.facebook_credentials.facebook_app_id') ||
-        ! config('crm-launcher.facebook_credentials.facebook_app_secret') ||
-        ! config('crm-launcher.facebook_credentials.facebook_page_id')
+    if (!config('crm-launcher.facebook_credentials.facebook_app_id') ||
+        !config('crm-launcher.facebook_credentials.facebook_app_secret') ||
+        !config('crm-launcher.facebook_credentials.facebook_page_id')
     ) {
         return false;
     }

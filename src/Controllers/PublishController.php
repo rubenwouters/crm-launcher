@@ -42,8 +42,8 @@ class PublishController extends Controller
     /**
      * @param Rubenwouters\CrmLauncher\Models\Reaction $reaction
      * @param Rubenwouters\CrmLauncher\Models\Publishment $publishment
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
+     * @param FetchTwitterContent $twitterContent
+     * @param FetchFacebookContent $facebookContent
      */
     public function __construct(
         Reaction $reaction,

@@ -113,13 +113,13 @@ class UsersController extends Controller
         $keywords = $request->input('keywords');
 
         $team = $this->user->where('canViewCRM', 1)->where(function($query) use ($keywords) {
-            $query->where('name', 'LIKE', '%' . $keywords .'%')
-                ->orWhere('email', 'LIKE', '%' . $keywords .'%');
+            $query->where('name', 'LIKE', '%' . $keywords . '%')
+                ->orWhere('email', 'LIKE', '%' . $keywords . '%');
         })->paginate(3, ['*'], 'team');
 
         $otherUsers = $this->user->where('canViewCRM', 0)->where(function($query) use ($keywords) {
-            $query->where('name', 'LIKE', '%' . $keywords .'%')
-                ->orWhere('email', 'LIKE', '%' . $keywords .'%');
+            $query->where('name', 'LIKE', '%' . $keywords . '%')
+                ->orWhere('email', 'LIKE', '%' . $keywords . '%');
         })->paginate(4, ['*'], 'users');
 
         return view('crm-launcher::users.index')

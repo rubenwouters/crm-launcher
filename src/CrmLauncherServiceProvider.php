@@ -11,8 +11,8 @@ class CrmLauncherServiceProvider extends ServiceProvider
      * @var array
      */
     protected $providers = [
-       'Laravel\Socialite\SocialiteServiceProvider',
-       'Collective\Html\HtmlServiceProvider',
+        'Laravel\Socialite\SocialiteServiceProvider',
+        'Collective\Html\HtmlServiceProvider',
     ];
 
     /**

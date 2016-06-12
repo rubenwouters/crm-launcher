@@ -57,7 +57,8 @@ class Reaction extends Model
      * @param  object $mention
      * @param  integer $id
      * @param  string $answer
-     * @return object
+     *
+     * @return Reaction
      */
     public function insertReaction($type, $mention, $id, $answer = null)
     {
