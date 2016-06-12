@@ -20,12 +20,14 @@ class Summary extends Model
     | Relationships of Contact model
     |
     */
-   
-    public function caseOverview(){
+
+    public function caseOverview()
+    {
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Case');
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo('App\User');
     }
 }

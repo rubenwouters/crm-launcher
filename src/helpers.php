@@ -6,7 +6,6 @@ use GuzzleHttp\Subscriber\Oauth\Oauth1;
 use Rubenwouters\CrmLauncher\Models\Reaction;
 use Rubenwouters\CrmLauncher\Models\Message;
 use Rubenwouters\CrmLauncher\Models\Configuration;
-use Carbon\Carbon;
 
 /**
  * Removes _normal from twitter profile link
@@ -38,7 +37,7 @@ function getErrorMessage($code)
 /**
  * Changes Twitter's date format to Y-m-d
  * @param  string $date
- * @return datetime
+ * @return string
  */
 function changeDateFormat($date)
 {
@@ -51,11 +50,11 @@ function changeDateFormat($date)
 /**
  * Changes Facebook's date format Y-m-d
  * @param  string $date
- * @return datetime
+ * @return string
  */
 function changeFbDateFormat($date)
 {
-     return date("Y-m-d H:i:s", strtotime($date));
+    return date("Y-m-d H:i:s", strtotime($date));
 }
 
 function filterUrl($message)
@@ -157,10 +156,10 @@ function isFacebookLinked()
  */
 function isTwitterEnvFilledOut()
 {
-    if (! config('crm-launcher.twitter_credentials.twitter_consumer_key') ||
-        ! config('crm-launcher.twitter_credentials.twitter_consumer_secret') ||
-        ! config('crm-launcher.twitter_credentials.twitter_access_token') ||
-        ! config('crm-launcher.twitter_credentials.twitter_access_token_secret')
+    if (!config('crm-launcher.twitter_credentials.twitter_consumer_key') ||
+        !config('crm-launcher.twitter_credentials.twitter_consumer_secret') ||
+        !config('crm-launcher.twitter_credentials.twitter_access_token') ||
+        !config('crm-launcher.twitter_credentials.twitter_access_token_secret')
     ) {
         return false;
     }
@@ -246,12 +245,11 @@ function latestCommentDate()
     $messageId = $reactionId = false;
 
     if (Message::where('fb_reply_id', '!=', '')->exists()) {
-        $messageId =  Message::where('fb_reply_id', '!=', '')->orderBy('post_date', 'DESC')->first()->post_date;
+        $messageId = Message::where('fb_reply_id', '!=', '')->orderBy('post_date', 'DESC')->first()->post_date;
     }
     if (Reaction::where('fb_post_id', '!=', '')->exists()) {
         $reactionId = Reaction::where('fb_post_id', '!=', '')->orderBy('post_date', 'DESC')->first()->post_date;
     }
 
-    var_dump($messageId, $reactionId, max($messageId, $reactionId));
     return max($messageId, $reactionId);
 }

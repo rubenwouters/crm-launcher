@@ -83,8 +83,8 @@ class CasesController extends Controller
      * @param Rubenwouters\CrmLauncher\Models\Contact $contact
      * @param Rubenwouters\CrmLauncher\Models\Message $message
      * @param Rubenwouters\CrmLauncher\Models\Innercomment $innerComment
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
+     * @param $twitterContent
+     * @param $facebookContent
      */
     public function __construct(
         Log $log,
@@ -107,14 +107,14 @@ class CasesController extends Controller
     }
 
     /**
-    * Shows cases overview
+     * Shows cases overview
      *
-    * @return view
-    */
+     * @return view
+     */
     public function index()
     {
         $secondsAgo = $this->log->secondsAgo('fetching');
-        if (! $secondsAgo) {
+        if (!$secondsAgo) {
             $this->initIds();
         }
         $cases = $this->case->visibleCases();
@@ -206,7 +206,7 @@ class CasesController extends Controller
         if ($case->origin == 'Twitter mention') {
             $type = 'public';
         } else {
-            $type  = 'private';
+            $type = 'private';
         }
 
         $reply = $this->twitterContent->answerTweet($request, $type, $tweetId, $handle);
@@ -450,7 +450,7 @@ class CasesController extends Controller
             $query = $contact->cases();
         }
 
-        if (! isset($query)) {
+        if (!isset($query)) {
 
             return false;
         }
@@ -471,7 +471,7 @@ class CasesController extends Controller
         $caseTypes = $request->input('cases');
 
         if ($caseTypes != null) {
-            $cases->where(function ($q) use ($request) {
+            $cases->where(function($q) use ($request) {
                 foreach ($request->input('cases') as $i => $value) {
                     $q->orWhere('status', $value);
                     static::$arActive[] = $value;

@@ -12,7 +12,7 @@ class CreataMediaTable extends Migration
      */
     public function up()
     {
-        Schema::create('media', function (Blueprint $table) {
+        Schema::create('media', function(Blueprint $table) {
             $table->increments('id');
             $table->string('message_id');
             $table->string('inner_comment_id');

@@ -16,7 +16,7 @@ class CanViewCRM
      */
     public function handle($request, Closure $next)
     {
-        if (! Auth::user()->canViewCRM) {
+        if (!Auth::user()->canViewCRM) {
             return redirect('home');
         }
 

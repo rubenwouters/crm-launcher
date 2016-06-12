@@ -77,7 +77,7 @@ class FetchFacebookContent
         $token = $this->config->FbAccessToken();
 
         try {
-            if($newest) {
+            if ($newest) {
                 $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&since=' . strtotime($newest), $token);
             } else {
                 $posts = $fb->get('/' . config('crm-launcher.facebook_credentials.facebook_page_id') . '/tagged?fields=from,message,created_time,full_picture&limit=1', $token);
@@ -261,7 +261,7 @@ class FetchFacebookContent
         $token = $this->config->FbAccessToken();
 
         try {
-            $reply = $fb->post('/' . $messageId . '/comments?message=' . rawurlencode($answer) , array('access_token' => $token));
+            $reply = $fb->post('/' . $messageId . '/comments?message=' . rawurlencode($answer), array('access_token' => $token));
             Session::flash('flash_success', trans('crm-launcher::success.post_sent'));
             return json_decode($reply->getBody());
         } catch (Exception $e) {
@@ -284,7 +284,7 @@ class FetchFacebookContent
         $token = $this->config->FbAccessToken();
 
         try {
-            $reply = $fb->post('/' . $conversation->fb_conversation_id . '/messages?message=' . rawurlencode($answer) , array('access_token' => $token));
+            $reply = $fb->post('/' . $conversation->fb_conversation_id . '/messages?message=' . rawurlencode($answer), array('access_token' => $token));
             $reply = json_decode($reply->getBody());
             Session::flash('flash_success', trans('crm-launcher::success.message_sent'));
 

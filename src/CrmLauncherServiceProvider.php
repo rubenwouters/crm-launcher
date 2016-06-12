@@ -4,35 +4,26 @@ namespace Rubenwouters\CrmLauncher;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Foundation\AliasLoader;
-use Rubenwouters\CrmLauncher\Updates\UpdateStatistics;
-use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
-use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
-use Rubenwouters\CrmLauncher\Models\Contact;
-use Rubenwouters\CrmLauncher\Models\CaseOverview;
-use Rubenwouters\CrmLauncher\Models\Configuration;
-use Rubenwouters\CrmLauncher\Models\Reaction;
-use Rubenwouters\CrmLauncher\Models\Log;
-
 
 class CrmLauncherServiceProvider extends ServiceProvider
 {
     /**
-    * @var array
-    */
-   protected $providers = [
+     * @var array
+     */
+    protected $providers = [
        'Laravel\Socialite\SocialiteServiceProvider',
        'Collective\Html\HtmlServiceProvider',
-   ];
+    ];
 
     /**
-    * @var array
-    */
-   protected $aliases = [
-       'Socialite'	=> 'Laravel\Socialite\Facades\Socialite',
-       'Form' => 'Collective\Html\FormFacade',
-       'Html' => 'Collective\Html\HtmlFacade',
-       'Input' => 'Illuminate\Support\Facades\Input',
-   ];
+     * @var array
+     */
+    protected $aliases = [
+        'Socialite'	=> 'Laravel\Socialite\Facades\Socialite',
+        'Form' => 'Collective\Html\FormFacade',
+        'Html' => 'Collective\Html\HtmlFacade',
+        'Input' => 'Illuminate\Support\Facades\Input',
+    ];
 
     /**
      * Bootstrap the application services.
@@ -41,12 +32,12 @@ class CrmLauncherServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (! $this->app->routesAreCached()) {
-            require __DIR__.'/routes.php';
+        if (!$this->app->routesAreCached()) {
+            require __DIR__ . '/routes.php';
         }
 
-        $this->loadViewsFrom(__DIR__.'/../resources/views', 'crm-launcher');
-        $this->loadTranslationsFrom(__DIR__.'/../lang', 'crm-launcher');
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'crm-launcher');
+        $this->loadTranslationsFrom(__DIR__ . '/../lang', 'crm-launcher');
         $this->publish();
         $this->registerCommands();
     }
@@ -114,15 +105,15 @@ class CrmLauncherServiceProvider extends ServiceProvider
     private function publish()
     {
         $this->publishes([
-            __DIR__.'/../resources/views' => resource_path('views/vendor/crm-launcher'),
+            __DIR__ . '/../resources/views' => resource_path('views/vendor/crm-launcher'),
         ]);
 
         $this->publishes([
-            __DIR__.'/../public' => base_path('public/crm-launcher/'),
+            __DIR__ . '/../public' => base_path('public/crm-launcher/'),
         ]);
 
         $this->publishes([
-            __DIR__.'/../config/crm-launcher.php' => config_path('crm-launcher.php'),
+            __DIR__ . '/../config/crm-launcher.php' => config_path('crm-launcher.php'),
         ]);
     }
 

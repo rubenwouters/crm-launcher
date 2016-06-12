@@ -3,8 +3,6 @@
 namespace Rubenwouters\CrmLauncher\Controllers;
 
 use Illuminate\Routing\Controller;
-use Auth;
-use Socialite;
 use Carbon\Carbon;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
 use Rubenwouters\CrmLauncher\Models\Configuration;
@@ -45,7 +43,7 @@ class DashboardController extends Controller
      * @param Rubenwouters\CrmLauncher\Models\Answer  $answer
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      * @param Rubenwouters\CrmLauncher\Models\Case $case
-     * @param Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter $validateTwitter
+     * @param ValidateTwitter $validateTwitter
      */
     public function __construct(
         Log $log,
@@ -62,13 +60,13 @@ class DashboardController extends Controller
     }
 
     /**
-    * Shows dashboard when all required permissions are granted
+     * Shows dashboard when all required permissions are granted
      *
-    * @return view
-    */
+     * @return view
+     */
     public function index()
     {
-        if (! $this->config->exists() || ! $this->config->first()->valid_credentials) {
+        if (!$this->config->exists() || !$this->config->first()->valid_credentials) {
 
             $data = ['validTwitterSettings' => $this->validateTwitter->validTwitterSettings()];
             return view('crm-launcher::dashboard.facebook', $data);
@@ -96,7 +94,7 @@ class DashboardController extends Controller
      */
     public function launch()
     {
-        if (! $this->config->exists()) {
+        if (!$this->config->exists()) {
             $config = new Configuration();
             $config->save();
 

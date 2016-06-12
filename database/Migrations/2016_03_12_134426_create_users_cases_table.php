@@ -7,7 +7,7 @@ class CreateUsersCasesTable extends Migration
 {
     public function up()
     {
-        Schema::create('users_cases', function (Blueprint $table) {
+        Schema::create('users_cases', function(Blueprint $table) {
             $table->increments('id');
             $table->integer('user_id');
             $table->integer('case_id');

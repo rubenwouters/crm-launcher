@@ -4,9 +4,7 @@ namespace Rubenwouters\CrmLauncher\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests;
 use Auth;
-use Session;
 use Carbon\Carbon;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Rubenwouters\CrmLauncher\Models\Publishment;
@@ -32,12 +30,12 @@ class PublishController extends Controller
     protected $publishment;
 
     /**
-     * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
+     * @var FetchTwitterContent
      */
     protected $twitterContent;
 
     /**
-     * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
+     * @var FetchFacebookContent
      */
     protected $facebookContent;
 

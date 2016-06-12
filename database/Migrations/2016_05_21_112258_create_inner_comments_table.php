@@ -12,7 +12,7 @@ class CreateInnerCommentsTable extends Migration
      */
     public function up()
     {
-        Schema::create('inner_comments', function (Blueprint $table) {
+        Schema::create('inner_comments', function(Blueprint $table) {
             $table->increments('id');
             $table->integer('contact_id');
             $table->integer('message_id');

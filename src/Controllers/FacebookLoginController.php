@@ -2,11 +2,8 @@
 
 namespace Rubenwouters\CrmLauncher\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use App\Http\Requests;
 use Socialite;
-use Carbon\Carbon;
 use Exception;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 
