@@ -26,7 +26,7 @@ class CreateUsersTable extends Migration
         if (Schema::hasTable('users')) {
             Schema::table('users', function($table) {
                 foreach ($this->fields as $field => $value) {
-                    if(!Schema::hasColumn('users', $field)) {
+                    if (!Schema::hasColumn('users', $field)) {
                         $type = $value['type'];
                         $table->$type($field);
                     }
@@ -36,7 +36,7 @@ class CreateUsersTable extends Migration
         } else {
             Schema::create('users', function($table) {
                 foreach ($this->fields as $field => $value) {
-                    if(!Schema::hasColumn('users', $field)) {
+                    if (!Schema::hasColumn('users', $field)) {
                         $type = $value['type'];
                         $table->$type($field);
                     }
@@ -66,27 +66,27 @@ class CreateUsersTable extends Migration
             'id' => [
                 'type' => 'increments',
             ],
-           'name' => [
-               'type' => 'string',
-               'length' => 250,
-           ],
-           'email' => [
-               'type' => 'string',
-               'length' => 250,
-               'extra' => 'unique'
-           ],
-           'password' => [
-               'type' => 'string',
-               'length' => 100,
-           ],
-           'remember_token' => [
-               'type' => 'string',
-               'length' => 100,
-           ],
-           'canViewCRM' => [
-               'type' => 'integer',
-               'length' => 1,
-           ]
+            'name' => [
+                'type' => 'string',
+                'length' => 250,
+            ],
+            'email' => [
+                'type' => 'string',
+                'length' => 250,
+                'extra' => 'unique'
+            ],
+            'password' => [
+                'type' => 'string',
+                'length' => 100,
+            ],
+            'remember_token' => [
+                'type' => 'string',
+                'length' => 100,
+            ],
+            'canViewCRM' => [
+                'type' => 'integer',
+                'length' => 1,
+            ]
         ];
     }
 }

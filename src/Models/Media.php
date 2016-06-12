@@ -41,6 +41,15 @@ class Media extends Model
      * @param  collection $mention
      * @return void
      */
+
+
+    /**
+     * Handles media if sent with tweet
+     * @param  integer $messageId
+     * @param  string $message
+     * @param  string $type
+     * @return void
+     */
     public function handleMedia($messageId, $message, $type = null)
     {
         $msg = Message::find($messageId);
@@ -48,7 +57,7 @@ class Media extends Model
             $msg = InnerComment::find($messageId);
         }
 
-        if (($type == 'twitter' || $type == 'twitter_reaction') && ! empty($message['extended_entities']) && !empty($message['extended_entities']['media'])) {
+        if (($type == 'twitter' || $type == 'twitter_reaction') && !empty($message['extended_entities']) && !empty($message['extended_entities']['media'])) {
             foreach ($message['extended_entities']['media'] as $key => $picture) {
                 $media = new Media();
                 if ($type == 'twitter_reaction') {
@@ -59,7 +68,7 @@ class Media extends Model
                 $media->url = $picture['media_url'];
                 $media->save();
             }
-        } else if (($type == 'twitter' || $type == 'twitter_reaction') && ! empty($message['entities']) && !empty($message['entities']['media'])) {
+        } else if (($type == 'twitter' || $type == 'twitter_reaction') && !empty($message['entities']) && !empty($message['entities']['media'])) {
             foreach ($message['entities']['media'] as $key => $picture) {
                 $media = new Media();
                 if ($type == 'twitter_reaction') {

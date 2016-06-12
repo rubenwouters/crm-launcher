@@ -23,7 +23,7 @@ class Contact extends Model
 
     public function cases()
     {
-       return $this->hasMany('Rubenwouters\CrmLauncher\Models\CaseOverview');
+        return $this->hasMany('Rubenwouters\CrmLauncher\Models\CaseOverview');
     }
 
     public function messages()
@@ -68,7 +68,7 @@ class Contact extends Model
             $contact = $this->getContact('twitter', $message['user']['id_str']);
             $contact->name = $message['user']['name'];
             $contact->twitter_handle = $message['user']['screen_name'];
-            $contact->twitter_id =  $message['user']['id_str'];
+            $contact->twitter_id = $message['user']['id_str'];
             $contact->profile_picture = $message['user']['profile_image_url'];
 
         } else if ($type == "twitter_direct") {
@@ -76,7 +76,7 @@ class Contact extends Model
             $contact = $this->getContact('twitter', $message['sender']['id_str']);
             $contact->name = $message['sender']['name'];
             $contact->twitter_handle = $message['sender']['screen_name'];
-            $contact->twitter_id =  $message['sender']['id_str'];
+            $contact->twitter_id = $message['sender']['id_str'];
             $contact->profile_picture = $message['sender']['profile_image_url'];
 
         } else if ($type == "facebook") {

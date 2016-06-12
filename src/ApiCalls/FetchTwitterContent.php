@@ -5,11 +5,16 @@ namespace Rubenwouters\CrmLauncher\ApiCalls;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 use Session;
 
-class FetchTwitterContent {
-
+class FetchTwitterContent
+{
+    const PUBLIC_TYPE = 'public';
+    /**
+     * @var Configuration
+     */
+    protected $config;
 
     /**
-     * @param Rubenwouters\CrmLauncher\Models\Configuration $config
+     * @param \Rubenwouters\CrmLauncher\Models\Configuration $config
      */
     public function __construct(Configuration $config)
     {
@@ -18,7 +23,8 @@ class FetchTwitterContent {
 
     /**
      * Get number of followers
-     * @return integer
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchFollowers()
     {
@@ -37,8 +43,8 @@ class FetchTwitterContent {
 
     /**
      * Fetch user's tweets
-     * @param  integer $page
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchTwitterStats()
     {
@@ -58,8 +64,8 @@ class FetchTwitterContent {
 
     /**
      * Fetch all mentions
-     * @param  string $type
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchMentions()
     {
@@ -83,8 +89,10 @@ class FetchTwitterContent {
 
     /**
      * Fetch all direct (private) messages
-     * @param  integer $since_id
-     * @return view
+     *
+     * @param integer $sinceId
+     *
+     * @return array|\Illuminate\View\View
      */
     public function fetchDirectMessages($sinceId)
     {
@@ -106,7 +114,8 @@ class FetchTwitterContent {
 
     /**
      * Get newest mention id on Twitter (Twitter)
-     * @return array
+     *
+     * @return mixed
      */
     public function newestMentionId()
     {
@@ -114,8 +123,13 @@ class FetchTwitterContent {
 
         try {
             $mentions = $client->get('statuses/mentions_timeline.json?count=1');
-            return json_decode($mentions->getBody(), true)[0]['id_str'];
+            $mentions = json_decode($mentions->getBody(), true);
 
+            if (count($mentions)) {
+                return $mentions[0]['id_str'];
+            }
+
+            return false;
         } catch (\GuzzleHttp\Exception\ClientException $e) {
 
             getErrorMessage($e->getResponse()->getStatusCode());
@@ -126,7 +140,8 @@ class FetchTwitterContent {
 
     /**
      * Get newest direct ID on Twitter (Twitter)
-     * @return array
+     *
+     * @return mixed
      */
     public function newestDirectId()
     {
@@ -134,10 +149,15 @@ class FetchTwitterContent {
 
         try {
             $directs = $client->get('direct_messages.json?count=1');
-            return json_decode($directs->getBody(), true)[0]['id_str'];
+            $directs = json_decode($directs->getBody(), true);
+
+            if (count($directs)) {
+                return $directs[0]['id_str'];
+            }
+
+            return false;
 
         } catch (\GuzzleHttp\Exception\ClientException $e) {
-
             getErrorMessage($e->getResponse()->getStatusCode());
 
             return back();
@@ -146,11 +166,13 @@ class FetchTwitterContent {
 
     /**
      * Answer tweet
+     *
      * @param  Request $request
      * @param  string $type
      * @param  integer $toId
      * @param  string $handle
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function answerTweet($request, $type, $toId, $handle)
     {
@@ -158,7 +180,7 @@ class FetchTwitterContent {
         $client = initTwitter();
 
         try {
-            if ($type == 'public') {
+            if ($type == self::PUBLIC_TYPE) {
                 $reply = $client->post('statuses/update.json?status=' . $answer . "&in_reply_to_status_id=" . $toId);
             } else {
                 $reply = $client->post('direct_messages/new.json?screen_name=' . $handle . '&text=' . $answer);
@@ -174,8 +196,10 @@ class FetchTwitterContent {
 
     /**
      * Publish tweet
+     *
      * @param  string $tweet
-     * @return array
+     *
+     * @return array|\Illuminate\View\View
      */
     public function publishTweet($tweet)
     {
@@ -184,7 +208,6 @@ class FetchTwitterContent {
         try {
             $publishment = $client->post('statuses/update.json?status=' . $tweet);
             return json_decode($publishment->getBody(), true);
-
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             getErrorMessage($e->getResponse()->getStatusCode());
             return back();
@@ -193,9 +216,11 @@ class FetchTwitterContent {
 
     /**
      * Delete tweet
+     *
      * @param  object $case
-     * @param  string $answer
-     * @return void
+     * @param  object $answer
+     *
+     * @return void|\Illuminate\View\View
      */
     public function deleteTweet($case, $answer)
     {
@@ -217,9 +242,11 @@ class FetchTwitterContent {
 
     /**
      * Follow/unfollow user
+     *
      * @param  object $contact
      * @param  integer $twitterId
-     * @return void
+     *
+     * @return void|\Illuminate\View\View
      */
     public function toggleFollowUser($contact, $twitterId)
     {

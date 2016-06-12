@@ -8,7 +8,6 @@ use Rubenwouters\CrmLauncher\Models\CaseOverview;
 use Rubenwouters\CrmLauncher\Models\Publishment;
 use Rubenwouters\CrmLauncher\Models\Message;
 use Rubenwouters\CrmLauncher\Models\InnerComment;
-use Rubenwouters\CrmLauncher\Models\InnerAnswer;
 use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\Models\Media;
 use Rubenwouters\CrmLauncher\Models\Reaction;
@@ -55,7 +54,7 @@ class UpdateAllCases {
     /**
      * @var Rubenwouters\CrmLauncher\Models\InnerComment
      */
-    protected $innercomment;
+    protected $innerComment;
 
     /**
      * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
@@ -76,8 +75,8 @@ class UpdateAllCases {
      * @param Rubenwouters\CrmLauncher\Models\Media $media
      * @param Rubenwouters\CrmLauncher\Models\Answer $answer
      * @param Rubenwouters\CrmLauncher\Models\InnerComment $innerComment
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
+     * @param FetchTwitterContent $twitterContent
+     * @param FetchFacebookContent $facebookContent
      */
     public function __construct(
         Contact $contact,
@@ -98,6 +97,7 @@ class UpdateAllCases {
         $this->message = $message;
         $this->media = $media;
         $this->answer = $answer;
+        $this->innerComment = $innerComment;
         $this->twitterContent = $twitterContent;
         $this->facebookContent = $facebookContent;
     }
@@ -304,7 +304,7 @@ class UpdateAllCases {
 
     /**
      * Fetch comments on post form Facebook
-     * @param  datetime $newest
+     * @param  \Datetime $newest
      * @return return collection
      */
     private function fetchComments($newest)
@@ -312,37 +312,40 @@ class UpdateAllCases {
         $messages = $this->getPosts();
 
         foreach ($messages as $key => $message) {
-            $comments = $this->facebookContent->fetchComments($newest, $message);
+            if ($message->fb_post_id != 0) {
 
-            if (! empty($comments->data)) {
-                foreach ($comments->data as $key => $comment) {
+                $comments = $this->facebookContent->fetchComments($newest, $message);
 
-                    if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
-                        && (!$newest || new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest))
-                    ) {
+                if (!empty($comments->data)) {
+                    foreach ($comments->data as $key => $comment) {
 
-                        if ($this->contact->FindByFbId($comment->from->id)->exists()) {
-                            $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
-                        } else {
-                            $contact = $this->contact->createContact('facebook', $comment);
-                        }
+                        if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
+                            && (!$newest || new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest))
+                        ) {
 
-                        if ($this->publishment->where('fb_post_id', $message->fb_post_id)->exists()) {
-                            $id = $this->publishment->where('fb_post_id', $message->fb_post_id)->first()->id;
-                            $reaction = $this->reaction->insertReaction('facebook', $comment, $id);
-                            $this->media->handleMedia($reaction->id, $comment, 'facebook_reactionInner');
-                        } else {
-                            $msg = new Message();
-                            $msg->fb_reply_id = $message->fb_post_id;
-                            $msg->post_date = changeFbDateFormat($comment->created_time);
-                            $msg->contact_id = $contact->id;
-                            $msg->fb_post_id = $comment->id;
-                            $msg->case_id = $message->case_id;
-                            $msg->message = $comment->message;
-                            $msg->save();
+                            if ($this->contact->FindByFbId($comment->from->id)->exists()) {
+                                $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
+                            } else {
+                                $contact = $this->contact->createContact('facebook', $comment);
+                            }
 
-                            $this->media->handleMedia($msg->id, $comment, 'facebook_comment');
-                            $this->updateCase($message->case_id, 'facebook', $comment->id);
+                            if ($this->publishment->where('fb_post_id', $message->fb_post_id)->exists()) {
+                                $id = $this->publishment->where('fb_post_id', $message->fb_post_id)->first()->id;
+                                $reaction = $this->reaction->insertReaction('facebook', $comment, $id);
+                                $this->media->handleMedia($reaction->id, $comment, 'facebook_reactionInner');
+                            } else {
+                                $msg = new Message();
+                                $msg->fb_reply_id = $message->fb_post_id;
+                                $msg->post_date = changeFbDateFormat($comment->created_time);
+                                $msg->contact_id = $contact->id;
+                                $msg->fb_post_id = $comment->id;
+                                $msg->case_id = $message->case_id;
+                                $msg->message = $comment->message;
+                                $msg->save();
+
+                                $this->media->handleMedia($msg->id, $comment, 'facebook_comment');
+                                $this->updateCase($message->case_id, 'facebook', $comment->id);
+                            }
                         }
                     }
                 }
@@ -354,6 +357,7 @@ class UpdateAllCases {
      * Update case with newest Facebook or Tweet id
      * @param  integer $caseId
      * @param  integer $messageId
+     * @param  string $type
      * @return void
      */
     private function updateCase($caseId, $type, $messageId)
@@ -405,7 +409,7 @@ class UpdateAllCases {
         foreach ($messages as $key => $message) {
             $comments = $this->facebookContent->fetchInnerComments($newest, $message['fb_post_id']);
 
-            if($comments == null) {
+            if ($comments == null) {
                 continue;
             }
 
@@ -413,7 +417,7 @@ class UpdateAllCases {
                 if ($comment->from->id != config('crm-launcher.facebook_credentials.facebook_page_id')
                     && new Datetime(changeFbDateFormat($comment->created_time)) > new Datetime($newest)
                 ) {
-                    if (! $this->contact->findByFbId($comment->from->id)->exists()) {
+                    if (!$this->contact->findByFbId($comment->from->id)->exists()) {
                         $contact = $this->contact->createContact('facebook', $comment);
                     } else {
                         $contact = $this->contact->where('facebook_id', $comment->from->id)->first();
@@ -426,7 +430,7 @@ class UpdateAllCases {
 
                     if (is_a($message, "Rubenwouters\CrmLauncher\Models\Answer")) {
                         $innerComment->answer_id = $message['id'];
-                    } else if(is_a($message, "Rubenwouters\CrmLauncher\Models\Reaction")){
+                    } else if (is_a($message, "Rubenwouters\CrmLauncher\Models\Reaction")){
                         $innerComment->reaction_id = $message['id'];
                     } else {
                         $innerComment->message_id = $message['id'];

@@ -7,7 +7,7 @@ class CreateLogsTable extends Migration
 {
     public function up()
     {
-        Schema::create('logs', function (Blueprint $table) {
+        Schema::create('logs', function(Blueprint $table) {
             $table->increments('id');
             $table->string('user');
             $table->string('case_type');

@@ -28,8 +28,10 @@ class SummaryController extends Controller
 
     /**
      * Add summary to case
+     *
      * @param Request $request
      * @param integer  $caseId
+     *
      * @return view
      */
     public function addSummary(Request $request, $caseId)
@@ -49,8 +51,10 @@ class SummaryController extends Controller
 
     /**
      * Delete summary
+     *
      * @param  integer $id
      * @param  integer $summaryId
+     *
      * @return view
      */
     public function deleteSummary($id, $summaryId)

@@ -67,7 +67,7 @@ class UpdateStatistics {
 
     /**
      * Update stats in DB (like count & retweet count)
-     * @param  array $tweets
+     *
      * @return void
      */
     public function updateTwitterStats()
@@ -88,7 +88,7 @@ class UpdateStatistics {
 
     /**
      * Update stats in DB
-     * @param  array $posts
+     * 
      * @return void
      */
     public function updateFbStats()

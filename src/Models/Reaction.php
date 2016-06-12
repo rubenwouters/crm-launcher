@@ -32,7 +32,8 @@ class Reaction extends Model
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\InnerComment');
     }
 
-    public function media(){
+    public function media()
+    {
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\Media', 'reaction_id');
     }
 
@@ -56,7 +57,8 @@ class Reaction extends Model
      * @param  object $mention
      * @param  integer $id
      * @param  string $answer
-     * @return object
+     *
+     * @return Reaction
      */
     public function insertReaction($type, $mention, $id, $answer = null)
     {

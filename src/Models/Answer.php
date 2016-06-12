@@ -21,23 +21,28 @@ class Answer extends Model
     | Relationships of Answer model
     |
     */
-    public function message(){
+    public function message()
+    {
         return $this->belongsTo('Rubenwouters\CrmLauncher\Models\Message');
     }
 
-    public function innerComment(){
+    public function innerComment()
+    {
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\InnerComment');
     }
 
-    public function innerAnswers(){
+    public function innerAnswers()
+    {
         return $this->hasMany('Rubenwouters\CrmLauncher\Models\InnerAnswer');
     }
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo('App\User');
     }
 
-    public function caseOverview(){
+    public function caseOverview()
+    {
         return $this->belongsTo('App\CaseOverview');
     }
 

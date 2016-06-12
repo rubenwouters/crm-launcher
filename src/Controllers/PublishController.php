@@ -4,22 +4,19 @@ namespace Rubenwouters\CrmLauncher\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests;
 use Auth;
-use Session;
 use Carbon\Carbon;
-use \Exception;
-use Datetime;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Rubenwouters\CrmLauncher\Models\Publishment;
 use Rubenwouters\CrmLauncher\Models\Reaction;
 use Rubenwouters\CrmLauncher\Models\InnerComment;
-use Rubenwouters\CrmLauncher\Models\Answer;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent;
 use Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent;
 
 class PublishController extends Controller
 {
+    const TYPE_TWITTER = 'twitter';
+    const TYPE_FACEBOOK = 'facebook';
     use ValidatesRequests;
 
     /**
@@ -33,20 +30,20 @@ class PublishController extends Controller
     protected $publishment;
 
     /**
-     * @var Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent
+     * @var FetchTwitterContent
      */
     protected $twitterContent;
 
     /**
-     * @var Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent
+     * @var FetchFacebookContent
      */
     protected $facebookContent;
 
     /**
      * @param Rubenwouters\CrmLauncher\Models\Reaction $reaction
      * @param Rubenwouters\CrmLauncher\Models\Publishment $publishment
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchTwitterContent $twitterContent
-     * @param Rubenwouters\CrmLauncher\ApiCalls\FetchFacebookContent $facebookContent
+     * @param FetchTwitterContent $twitterContent
+     * @param FetchFacebookContent $facebookContent
      */
     public function __construct(
         Reaction $reaction,
@@ -62,6 +59,7 @@ class PublishController extends Controller
 
     /**
      * Show start view of publisher
+     *
      * @return view
      */
     public function index()
@@ -73,7 +71,9 @@ class PublishController extends Controller
 
     /**
      * Show detail of publishment
+     *
      * @param  integer $id
+     *
      * @return view
      */
     public function detail($id)
@@ -91,8 +91,10 @@ class PublishController extends Controller
 
     /**
      * Reply tweet (Twitter)
+     *
      * @param  Request $request
      * @param  integer  $id
+     *
      * @return view
      */
     public function replyTweet(Request $request, $id)
@@ -110,15 +112,17 @@ class PublishController extends Controller
         }
 
         $reply = $this->twitterContent->answerTweet($request, 'public', $replyTo, null);
-        $this->reaction->insertReaction('twitter', $reply, $id);
+        $this->reaction->insertReaction(self::TYPE_TWITTER, $reply, $id);
 
         return back();
     }
 
     /**
      * Reply post (Facebook)
+     *
      * @param  Request $request
      * @param  integer  $id
+     *
      * @return view
      */
     public function replyPost(Request $request, $id)
@@ -136,7 +140,7 @@ class PublishController extends Controller
         } else {
             $replyTo = $publishment->fb_post_id;
             $reply = $this->facebookContent->answerPost($request->input('answer'), $replyTo);
-            $this->reaction->insertReaction('facebook', $reply, $id, $request->input('answer'));
+            $this->reaction->insertReaction(self::TYPE_FACEBOOK, $reply, $id, $request->input('answer'));
         }
 
         return back();
@@ -144,7 +148,9 @@ class PublishController extends Controller
 
     /**
      * Publish Tweet and/or Facebook post
+     *
      * @param  Request $request
+     *
      * @return view
      */
     public function publish(Request $request)
@@ -156,14 +162,14 @@ class PublishController extends Controller
 
         $content = rawurlencode($request->input('content'));
 
-        if (in_array('twitter', $request->input('social'))) {
+        if (in_array(self::TYPE_TWITTER, $request->input('social'))) {
             $publishment = $this->twitterContent->publishTweet($content);
-            $this->insertPublishment('twitter', $publishment, $content);
+            $this->insertPublishment(self::TYPE_TWITTER, $publishment, $content);
         }
 
-        if (in_array('facebook', $request->input('social'))) {
+        if (in_array(self::TYPE_FACEBOOK, $request->input('social'))) {
             $publishment = $this->facebookContent->publishPost($content);
-            $this->insertPublishment('facebook', $publishment, $content);
+            $this->insertPublishment(self::TYPE_FACEBOOK, $publishment, $content);
         }
 
         return back();
@@ -173,7 +179,7 @@ class PublishController extends Controller
      * Insert inner comment in DB
      * @param  integer $id
      * @param  Request $request
-     * @param  id $messageId
+     * @param  integer $messageId
      * @param  object $reply
      * @return void
      */
@@ -195,8 +201,10 @@ class PublishController extends Controller
 
     /**
      * Insert publishment in DB
-     * @param  array $publishment
-     * @return void
+     *
+     * @param string $type
+     * @param array $publication
+     * @param string $content
      */
     private function insertPublishment($type, $publication, $content)
     {
@@ -209,10 +217,10 @@ class PublishController extends Controller
         $publishment->user_id = Auth::user()->id;
         $publishment->content = $content;
 
-        if ($type == 'twitter') {
+        if ($type == self::TYPE_TWITTER) {
             $publishment->tweet_id = $publication['id_str'];
             $publishment->post_date = changeDateFormat($publication['created_at']);
-        } else if ($type == 'facebook') {
+        } else if ($type == self::TYPE_FACEBOOK) {
             $publishment->fb_post_id = $publication->id;
             $publishment->post_date = Carbon::now();
         }

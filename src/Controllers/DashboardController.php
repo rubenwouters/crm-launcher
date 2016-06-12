@@ -3,10 +3,7 @@
 namespace Rubenwouters\CrmLauncher\Controllers;
 
 use Illuminate\Routing\Controller;
-use Auth;
-use Socialite;
 use Carbon\Carbon;
-use \Exception;
 use Rubenwouters\CrmLauncher\Models\CaseOverview;
 use Rubenwouters\CrmLauncher\Models\Configuration;
 use Rubenwouters\CrmLauncher\Models\Log;
@@ -46,7 +43,7 @@ class DashboardController extends Controller
      * @param Rubenwouters\CrmLauncher\Models\Answer  $answer
      * @param Rubenwouters\CrmLauncher\Models\Configuration $config
      * @param Rubenwouters\CrmLauncher\Models\Case $case
-     * @param Rubenwouters\CrmLauncher\ApiCalls\ValidateTwitter $validateTwitter
+     * @param ValidateTwitter $validateTwitter
      */
     public function __construct(
         Log $log,
@@ -63,12 +60,13 @@ class DashboardController extends Controller
     }
 
     /**
-    * Shows dashboard when all required permissions are granted
-    * @return view
-    */
+     * Shows dashboard when all required permissions are granted
+     *
+     * @return view
+     */
     public function index()
     {
-        if (! $this->config->exists() || ! $this->config->first()->valid_credentials) {
+        if (!$this->config->exists() || !$this->config->first()->valid_credentials) {
 
             $data = ['validTwitterSettings' => $this->validateTwitter->validTwitterSettings()];
             return view('crm-launcher::dashboard.facebook', $data);
@@ -91,11 +89,12 @@ class DashboardController extends Controller
 
     /**
      * Updates config record to a valid state after checks
-     * @return view
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function launch()
     {
-        if (! $this->config->exists()) {
+        if (!$this->config->exists()) {
             $config = new Configuration();
             $config->save();
 
@@ -112,6 +111,7 @@ class DashboardController extends Controller
 
     /**
      * Gets average wait time
+     *
      * @return integer
      */
     private function getAvgWaitTime()
@@ -141,6 +141,7 @@ class DashboardController extends Controller
 
     /**
      * Gets average messages per case
+     *
      * @return integer
      */
     private function getAvgMessages()
@@ -164,6 +165,7 @@ class DashboardController extends Controller
 
     /**
      * Gets average helpers per case
+     *
      * @return integer
      */
     private function getAvgHelpers()
@@ -185,24 +187,11 @@ class DashboardController extends Controller
 
     /**
      * Gets number answers sent today
+     *
      * @return integer
      */
     private function getTodaysMessages()
     {
         return count($this->answer->TodaysAnswers());
-    }
-
-    private function lastUpdate()
-    {
-        if ($this->log->dashboardUpdate()->exists()) {
-
-            $lastUpdate = $this->log->dashboardUpdate()->orderBy('id', 'DESC')->first()->created_at;
-            $now = Carbon::now();
-            $last = new Carbon($lastUpdate);
-
-            return $now->diffInSeconds($last);
-        }
-
-        return false;
     }
 }

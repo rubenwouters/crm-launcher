@@ -12,7 +12,7 @@ class CreateConfigurationsTable extends Migration
      */
     public function up()
     {
-        Schema::create('configurations', function (Blueprint $table) {
+        Schema::create('configurations', function(Blueprint $table) {
             $table->increments('id');
             $table->string('twitter_screen_name');
             $table->string('twitter_id');

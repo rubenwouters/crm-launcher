@@ -94,7 +94,7 @@
 
                 @if(! count($publishments))
                     <div class="col-xs-12 no-results">
-                        <h3>No reactions yet.</h3>
+                        <h3>No publishments yet.</h3>
                     </div>
                 @endif
             </div>

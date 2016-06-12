@@ -1,6 +1,6 @@
 <?php
 
-Route::group(['middleware' => ['web', 'auth', 'CanViewCRM']], function () {
+Route::group(['middleware' => ['web', 'auth', 'CanViewCRM']], function() {
 
     // Dashboard (overview) routes
     Route::get('/crm/dashboard', 'Rubenwouters\CrmLauncher\Controllers\DashboardController@index');

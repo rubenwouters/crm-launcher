@@ -40,7 +40,7 @@ class GrantAccess extends Command
     {
         $email = $this->argument('email');
 
-        if(User::where('email', $email)->exists()){
+        if (User::where('email', $email)->exists()) {
             $user = User::where('email', $email)->first();
             $state = $user->canViewCRM;
             $user->canViewCRM = !$state;

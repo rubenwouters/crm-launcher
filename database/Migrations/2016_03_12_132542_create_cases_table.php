@@ -8,7 +8,7 @@ class CreateCasesTable extends Migration
 
     public function up()
     {
-        Schema::create('cases', function (Blueprint $table) {
+        Schema::create('cases', function(Blueprint $table) {
             $table->increments('id');
             $table->integer('contact_id');
             $table->string('latest_tweet_id');
