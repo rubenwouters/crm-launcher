@@ -74,12 +74,12 @@ class InnerComment extends Model
     {
         $messageId = $reactionId = Carbon::today();
 
-        if ($query->where('reaction_id', '0')->exists()) {
-            $messageId = $query->orderBy('post_date', 'DESC')->where('reaction_id', '0')->first()->post_date;
+        if (InnerComment::where('reaction_id', '0')->exists()) {
+            $messageId = InnerComment::orderBy('post_date', 'DESC')->where('reaction_id', '0')->first()->post_date;
         }
 
-        if ($query->where('reaction_id', '!=', '0')->exists()) {
-            $reactionId = $query->orderBy('post_date', 'DESC')->where('reaction_id', '!=', '0')->first()->post_date;
+        if (InnerComment::where('reaction_id', '!=', '0')->exists()) {
+            $reactionId = InnerComment::orderBy('post_date', 'DESC')->where('reaction_id', '!=', '0')->first()->post_date;
         }
 
         return max($messageId, $reactionId);

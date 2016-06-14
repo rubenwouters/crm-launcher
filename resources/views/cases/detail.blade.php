@@ -94,18 +94,20 @@
                             </div>
                         @endforeach
                     </div>
-                    @if($case->origin == "Facebook post" && $key != 0)
-                        <div class="row answer_block answer_{{$key}}">
-                            <div class="col-xs-9 col-xs-offset-3 answer_specific inner">
-                                {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\CasesController@replyPost', $case->id), 'class' => 'form_' . $key)) !!}
-                                    {!! Form::hidden('in_reply_to', '') !!}
-                                    {!! Form::textarea('answer_specific', null, ['placeholder' => 'Enter your answer', 'class' => 'specific_answer ' .$key , 'rows' => 2, 'cols' => 40]) !!}
-                                {!! Form::close() !!}
-                            </div>
-                        </div>
-                    @endif
+
 
                     <div toggle-nr='{{$key}}' class="more">Comments <i class="fa fa-caret-down" aria-hidden="true"></i></div>
+                @endif
+
+                @if($case->origin == "Facebook post" && $key != 0)
+                    <div class="row answer_block answer_{{$key}}">
+                        <div class="col-xs-9 col-xs-offset-3 answer_specific">
+                            {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\CasesController@replyPost', $case->id), 'class' => 'form_' . $key)) !!}
+                                {!! Form::hidden('in_reply_to', '') !!}
+                                {!! Form::textarea('answer_specific', null, ['placeholder' => 'Enter your answer', 'class' => 'specific_answer ' .$key , 'rows' => 2, 'cols' => 40]) !!}
+                            {!! Form::close() !!}
+                        </div>
+                    </div>
                 @endif
 
                 @foreach($message->answers as $nr => $answer)
@@ -116,7 +118,7 @@
                         <div class="col-xs-12 col-sm-10  col-md-9 bubble answer" operatorId="{{$answer->user->id}}">
                             <div class="delete-answer">
                                 @if($case->origin == "Facebook post")
-                                    <a class="reply_own"  answerTrigger="{{$nr}}" replyId="{{$answer->fb_post_id}}" href="#!">
+                                    <a class="reply_own"  answerTrigger="{{$key}}" replyId="{{$answer->fb_post_id}}" href="#!">
                                         <i class="fa fa-reply" aria-hidden="true"></i>
                                     </a>
                                 @endif
@@ -141,7 +143,7 @@
                         </div>
 
                         @if($case->origin == "Facebook post")
-                            <div class="row answer_block answer_own_{{$nr}}">
+                            <div class="row answer_block answer_own_{{$key}}">
                                 <div class="col-xs-9 col-xs-offset-3 answer_specific">
                                     {!! Form::open(array('action' => array('\Rubenwouters\CrmLauncher\Controllers\CasesController@replyPost', $case->id), 'class' => 'form_' . $key)) !!}
                                         {!! Form::hidden('in_reply_to', '') !!}
@@ -153,7 +155,7 @@
                     </div>
 
                     @if ($case->origin == 'Facebook post' && count($answer->innerComment))
-                        <div id="answer{{$nr}}" class="inner-comments-answers">
+                        <div id="answer{{$key}}" class="inner-comments-answers">
                             @foreach($answer->innerComment as $comment)
                                 <div class="inner message">
                                     <div class="hidden-xs col-xs-2 col-md-3 thumb-picture">
@@ -193,7 +195,7 @@
                                 </div>
                             @endforeach
                         </div>
-                        <div toggle-nr-answer='{{$nr}}' class="more-answer">Comments <i class="fa fa-caret-down" aria-hidden="true"></i></div>
+                        <div toggle-nr-answer='{{$key}}' class="more-answer">Comments <i class="fa fa-caret-down" aria-hidden="true"></i></div>
                     @endif
                 @endforeach
             @endforeach
