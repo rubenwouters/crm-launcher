@@ -11,7 +11,7 @@
 
     <div class="user-management">
         <div class="row">
-            <div class="col-xs-12 search-block">
+            <div class="col-xs-12 col-md-6 col-md-offset-3 search-block">
                 {!! Form::open(array('method' => 'GET', 'action' => array('\Rubenwouters\CrmLauncher\Controllers\UsersController@searchUser'))) !!}
                     {!! Form::text('keywords', null, ['placeholder' => 'Search users by name or e-mail', 'class' => 'search-bar']) !!}
                 {!! Form::close() !!}

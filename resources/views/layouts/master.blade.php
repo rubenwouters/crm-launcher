@@ -13,32 +13,29 @@
 
     <body>
         <div class="menu-overlay"></div>
-        <div class="row">
             <header class="col-xs-12 col-sm-10 col-sm-offset-2">
                 <a class="menu-trigger" href="#!"><i class="fa fa-bars responsive-menu visible-xs" aria-hidden="true"></i></a>
                 <h1 class="title">
                     @yield('header-title')
                 </h1>
             </header>
-        </div>
-
         @section('sidebar')
-                <nav class="col-sm-2 col-xs-0 vertical-sidebar">
-                    <a href="/crm/dashboard"><img class="logo" src="{{asset("crm-launcher/img/Logo.png")}}" alt="CRM Launcher logo" /></a>
-                    <ul>
-                        @if (isConfigured())
-                            <li class="@if(strpos($_SERVER['REQUEST_URI'], 'dashboard')) active @endif"><a href="/crm/dashboard">Overview</a></li>
-                            <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'publish')) active @endif" ><a href="/crm/publisher">Publisher</a></li>
-                            <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'case')) active @endif" ><a href="/crm/cases">Cases</a></li>
-                            <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'user')) active @endif" ><a href="/crm/users">Team</a></li>
-                            @if (needsHelp())
-                                <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'help')) active @endif" ><a href="/crm/help">Help</a></li>
-                            @endif
-                        @else
-                            <li class="@if(strpos($_SERVER['REQUEST_URI'], 'dashboard')) active @endif"><a href="/crm/dashboard">Take off</a></li>
+            <nav class="col-sm-2 col-xs-0 vertical-sidebar">
+                <a href="/crm/dashboard"><img class="logo" src="{{asset("crm-launcher/img/Logo.png")}}" alt="CRM Launcher logo" /></a>
+                <ul>
+                    @if (isConfigured())
+                        <li class="@if(strpos($_SERVER['REQUEST_URI'], 'dashboard')) active @endif"><a href="/crm/dashboard">Overview</a></li>
+                        <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'publish')) active @endif" ><a href="/crm/publisher">Publisher</a></li>
+                        <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'case')) active @endif" ><a href="/crm/cases">Cases</a></li>
+                        <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'user')) active @endif" ><a href="/crm/users">Team</a></li>
+                        @if (needsHelp())
+                            <li class="cases @if(strpos($_SERVER['REQUEST_URI'], 'help')) active @endif" ><a href="/crm/help">Help</a></li>
                         @endif
-                    </ul>
-                </nav>
+                    @else
+                        <li class="@if(strpos($_SERVER['REQUEST_URI'], 'dashboard')) active @endif"><a href="/crm/dashboard">Take off</a></li>
+                    @endif
+                </ul>
+            </nav>
         @show
 
         <div class="col-sm-10 col-sm-offset-2 container">
@@ -49,6 +46,7 @@
             @if(Session::has('flash_success'))
                 <div class="success-message"><span>{!! session('flash_success') !!}</span></div>
             @endif
+
             @yield('content')
         </div>
 

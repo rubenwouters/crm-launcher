@@ -36,7 +36,7 @@
             <h3>No results where found for: {{$searchResult['keyword']}}</h3>
         @endif
 
-        <div class="col-xs-12 search-block">
+        <div class="col-xs-12 col-md-6 col-md-offset-3 search-block">
                 {!! Form::text('keywords', null, ['placeholder' => 'Search case by id, name, keyword, date or social media ', 'class' => 'search-case-bar']) !!}
         </div>
     </div>
