@@ -6,14 +6,12 @@ $(document).ready(function(){
 	$('.more').click(function(){
 		var nr = $(this).attr('toggle-nr');
 		$('#' + nr).slideToggle();
-		scrollToAnchor(this);
 		$(this).find('.fa').toggleClass('fa-caret-down').toggleClass('fa-caret-up');
 	})
 
 	$('.more-answer').click(function(){
 		var nr = $(this).attr('toggle-nr-answer');
 		$('#answer' + nr).slideToggle();
-		scrollToAnchor(this);
 		$(this).find('.fa').toggleClass('fa-caret-down').toggleClass('fa-caret-up');
 	})
 
@@ -58,14 +56,12 @@ $(document).ready(function(){
 			$('textarea.' + trigger).focus();
 		});
 
-		if($(this).attr('screenName')){
+		if ($(this).attr('screenName')) {
 			$('textarea[name=answer][class=maxed]').text('@' + $(this).attr('screenName') + ' ');
 			scrollToAnchor($('textarea[name=answer]'));
 			$('textarea[name=answer][class=maxed]').focus();
-
-		} else {
-			scrollToAnchor(this);
 		}
+
 		$('input[name="in_reply_to"]').attr('value', $(this).attr('replyId'));
 	});
 

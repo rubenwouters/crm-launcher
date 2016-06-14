@@ -1,0 +1,60 @@
+.help{
+    text-align: center;
+
+    .row{
+
+    }
+
+    h2{
+        padding: 40px 0px;
+        padding-bottom: 10px;
+        margin-bottom: 0px;
+        font-weight: 600;
+    }
+
+    h3{
+        text-align: center;
+        margin-top: 0px;
+        margin-bottom: 60px;
+    }
+
+    h4{
+        font-weight: 600;
+    }
+
+    .hide-help{
+        text-align: center;
+        padding: 30px 0px;
+        a{
+            display: inherit;
+            color: gray !important;
+            text-decoration: none;
+        }
+    }
+
+    .hide-help.button{
+        margin: 30px 0px;
+        a {
+            padding: 10px 10px;
+            display: inline-block;
+            background-color: $header-backgroundcolor;
+            color: white !important;
+        }
+    }
+
+    @media (min-width: 992px) {
+        .image{
+            display: flex;
+            justify-contents:center;
+            align-items:center;
+            text-align: left;
+        }
+    }
+    .image{
+        text-align: left !important;
+
+        img{
+            width: 100%;
+        }
+    }
+}

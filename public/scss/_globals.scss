@@ -1,8 +1,12 @@
 body{
     font-family: 'Source Sans Pro', sans-serif;
-    overflow-x:hidden;
+    // overflow-x:hidden;
 }
 
 textarea{
     border: 1px solid gray;
+}
+
+.bold{
+    font-weight: 600;
 }
