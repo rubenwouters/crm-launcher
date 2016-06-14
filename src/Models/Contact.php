@@ -98,7 +98,8 @@ class Contact extends Model
      * @param  string  $id
      * @return collection
      */
-    public function getContact($type, $id) {
+    public function getContact($type, $id)
+    {
         if ($type == 'twitter' && Contact::where('twitter_id', $id)->exists()) {
 
             return Contact::findByTwitterId($id);

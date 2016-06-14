@@ -57,9 +57,16 @@ function changeFbDateFormat($date)
     return date("Y-m-d H:i:s", strtotime($date));
 }
 
+/**
+ * Filter URL out of string
+ *
+ * @param  string $message
+ * @return string
+ */
 function filterUrl($message)
 {
     $pattern = "/[a-zA-Z]*[:\/\/]*[A-Za-z0-9\-_]+\.+[A-Za-z0-9\.\/%&=\?\-_]+/i";
+
     return preg_replace($pattern, '', $message);
 }
 
@@ -118,6 +125,19 @@ function hasFbPermissions()
 function isConfigured()
 {
     if (Configuration::exists() && Configuration::first()->valid_credentials) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Check if user still needs 'help' section
+ * @return boolean
+ */
+function needsHelp(){
+
+    if (Configuration::exists() && ! Configuration::first()->help_disabled) {
         return true;
     }
 

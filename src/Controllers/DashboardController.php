@@ -88,6 +88,25 @@ class DashboardController extends Controller
     }
 
     /**
+     * Shows help page
+     *
+     * @return view
+     */
+    public function help()
+    {
+        return view('crm-launcher::help.index');
+    }
+
+    public function disableHelp()
+    {
+        $config = Configuration::first();
+        $config->help_disabled = 1;
+        $config->save();
+
+        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
+    }
+
+    /**
      * Updates config record to a valid state after checks
      *
      * @return \Illuminate\Http\RedirectResponse
@@ -106,7 +125,7 @@ class DashboardController extends Controller
         $config->valid_credentials = 1;
         $config->save();
 
-        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\DashboardController@index');
+        return redirect('/crm/help');
     }
 
     /**

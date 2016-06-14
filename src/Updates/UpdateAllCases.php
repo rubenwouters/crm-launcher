@@ -430,7 +430,7 @@ class UpdateAllCases {
 
                     if (is_a($message, "Rubenwouters\CrmLauncher\Models\Answer")) {
                         $innerComment->answer_id = $message['id'];
-                    } else if (is_a($message, "Rubenwouters\CrmLauncher\Models\Reaction")){
+                    } else if (is_a($message, "Rubenwouters\CrmLauncher\Models\Reaction")) {
                         $innerComment->reaction_id = $message['id'];
                     } else {
                         $innerComment->message_id = $message['id'];

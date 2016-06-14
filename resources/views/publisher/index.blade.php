@@ -9,7 +9,7 @@
 
 @section('content')
 
-    <div class="container">
+    <div>
         @if (count($errors) > 0)
             <div class="error-message"><span>{{ $errors->first() }}</span></div>
         @endif
