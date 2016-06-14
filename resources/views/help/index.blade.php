@@ -21,7 +21,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/img/help/dashboard.png" alt="" />
+                    <img src="/crm-launcher/img/help/dashboard.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Overview</h4>
@@ -37,7 +37,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/img/help/cases.png" alt="" />
+                    <img src="/crm-launcher/crm-launcher/img/help/cases.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Cases overview</h4>
@@ -61,7 +61,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/img/help/case-detail.png" alt="" />
+                    <img src="/crm-launcher/img/help/case-detail.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Case detail</h4>
@@ -80,7 +80,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/img/help/publisher.png" alt="" />
+                    <img src="/crm-launcher/img/help/publisher.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Publisher</h4>
@@ -98,7 +98,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/img/help/publish-detail.png" alt="" />
+                    <img src="/crm-launcher/img/help/publish-detail.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Publishment detail</h4>
