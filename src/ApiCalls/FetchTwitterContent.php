@@ -241,6 +241,28 @@ class FetchTwitterContent
     }
 
     /**
+     * Delete tweet
+     *
+     * @param  object $case
+     * @param  object $answer
+     *
+     * @return void|\Illuminate\View\View
+     */
+    public function deleteTweetPublishment($answer)
+    {
+        $client = initTwitter();
+
+        try {
+            $client->post('statuses/destroy/' . $answer->tweet_id . '.json');
+            Session::flash('flash_success', trans('crm-launcher::success.tweet_deleted'));
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            getErrorMessage($e->getResponse()->getStatusCode());
+            return back();
+        }
+    }
+
+    /**
      * Follow/unfollow user
      *
      * @param  object $contact

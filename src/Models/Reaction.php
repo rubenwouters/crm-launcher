@@ -82,8 +82,9 @@ class Reaction extends Model
 
         } else {
             $reaction->fb_post_id = $mention->id;
-
+            
             if ($answer == null) {
+                $reaction->screen_name = $mention->from->name;
                 $reaction->message = $mention->message;
                 $reaction->post_date = changeFbDateFormat($mention->created_time);
             } else {

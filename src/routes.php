@@ -18,6 +18,8 @@ Route::group(['middleware' => ['web', 'auth', 'CanViewCRM']], function() {
     Route::get('/crm/publisher', 'Rubenwouters\CrmLauncher\Controllers\PublishController@index');
     Route::get('/crm/publisher/{id}', 'Rubenwouters\CrmLauncher\Controllers\PublishController@detail');
     Route::post('/crm/publish', 'Rubenwouters\CrmLauncher\Controllers\PublishController@publish');
+    Route::get('/crm/publishment/{id}/delete', 'Rubenwouters\CrmLauncher\Controllers\PublishController@delete');
+    Route::get('/crm/reaction/{id}/delete', 'Rubenwouters\CrmLauncher\Controllers\PublishController@deleteReaction');
     Route::post('/crm/publisher/{id}/answer', 'Rubenwouters\CrmLauncher\Controllers\PublishController@replyTweet');
     Route::post('/crm/publisher/{id}/post', 'Rubenwouters\CrmLauncher\Controllers\PublishController@replyPost');
 

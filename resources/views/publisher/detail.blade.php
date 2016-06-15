@@ -18,6 +18,11 @@
             <div class="col-md-6 col-md-offset-3">
                 <div class="date">{{ date('l d M Y', strtotime($publishment->created_at)) }}</div>
                 <div class="col-md-12 published-content">
+                    <div class="delete-publishment">
+                        <a href="/crm/publishment/{{$publishment->id}}/delete">
+                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                        </a>
+                    </div>
                     {{ rawurldecode($publishment->content) }}
                     <div class="col-xs-12 icons">
                         @if($publishment->tweet_id != '')
@@ -51,7 +56,8 @@
 
 
         <div class="row">
-            <div class="@if(!count($tweets)) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation detail">
+            @if(count($tweets))
+            <div class="@if(!count($posts)) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation detail">
                 @if(count($tweets) > 0)
                     @foreach($tweets->sortBy('post_date') as $key => $message)
 
@@ -79,6 +85,11 @@
                                         <a class="reply" answerTrigger="{{$key}}" replyId="{{$message->tweet_id}}" screenName="{{$message->screen_name}}" href="#!">
                                             <i class="fa fa-reply" aria-hidden="true"></i>
                                         </a>
+                                        @if($message->user_id == 0)
+                                            <a href="/crm/reaction/{{$message->id}}/delete">
+                                                <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                            </a>
+                                        @endif
                                     </div>
 
                                     <h4 class="contact-name">{{ $message->screen_name }}</h4>
@@ -100,7 +111,9 @@
                     {!! Form::close() !!}
                 @endif
             </div>
+            @endif
 
+            @if(count($posts))
             <div class="@if(!count($tweets)) col-md-6 col-md-offset-3 @else col-md-6 @endif conversation detail">
                 @if(count($posts) > 0)
                     @foreach($posts as $key => $post)
@@ -127,7 +140,14 @@
                                         <a class="reply_post" answerTrigger="{{$key}}" replyId="{{$post->fb_post_id}}" href="#!">
                                             <i class="fa fa-reply" aria-hidden="true"></i>
                                         </a>
+                                        @if($post->user_id != 0)
+                                            <a href="/crm/reaction/{{$post->id}}/delete">
+                                                <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                            </a>
+                                        @endif
+
                                     </div>
+                                    <h4 class="contact-name">{{ $post->screen_name }}</h4>
                                     {{ $post->message }}
                                 @endif
                             </div>
@@ -153,7 +173,13 @@
                                             @else
                                                 <div class="reply-inner">
                                                     <span class="post-date">{{ date('d F, H:i', strtotime($comment->post_date)) }}</span>
+                                                    @if($comment->user_id != 0)
+                                                        <a href="/crm/case/0/inner/{{$comment->id}}">
+                                                            <i class="fa fa-trash-o" aria-hidden="true"></i>
+                                                        </a>
+                                                    @endif
                                                 </div>
+                                                @if($comment->contact_id != 0)<h4 class="contact-name">{{ $comment->contact->name }}</h4> @endif
                                                 {{ $comment->message }}
                                             @endif
                                         </div>
@@ -183,6 +209,7 @@
                     {!! Form::close() !!}
                 @endif
             </div>
+            @endif
         </div>
     </div>
 

@@ -90,6 +90,49 @@ class PublishController extends Controller
     }
 
     /**
+     * Delete publishment
+     *
+     * @param  integer $id
+     * @return view
+     */
+    public function delete($id)
+    {
+        $publishment = $this->publishment->find($id);
+        $publishment->delete();
+
+        if ($publishment->fb_post_id) {
+            $this->facebookContent->deleteFbPost($publishment);
+        }
+
+        if ($publishment->tweet_id) {
+            $this->twitterContent->deleteTweetPublishment($publishment);
+        }
+
+        return redirect()->action('\Rubenwouters\CrmLauncher\Controllers\PublishController@index');
+    }
+
+    /**
+     * Delete reaction
+     *
+     * @param  integer $id
+     * @return view
+     */
+    public function deleteReaction($id)
+    {
+        $reaction = $this->reaction->find($id);
+        $reaction->delete();
+
+        if ($reaction->fb_post_id != '') {
+            $this->facebookContent->deleteFbPost($reaction);
+        }
+        if ($reaction->tweet_id != '') {
+            $this->twitterContent->deleteTweetPublishment($reaction);
+        }
+
+        return back();
+    }
+
+    /**
      * Reply tweet (Twitter)
      *
      * @param  Request $request
