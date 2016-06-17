@@ -1,6 +1,14 @@
 <?php
 
 return [
+
+    /**
+     * Returns required number of messages before notification is emailed
+     */
+    'notification' => [
+        'crm_notify_from_messages' => getenv('CRM_NOTIFY_FROM_MESSAGES'),
+    ]
+
     /**
      * Returns Twitter credentials from config file
      */
@@ -19,5 +27,4 @@ return [
         'facebook_app_secret' => getenv('FACEBOOK_APP_SECRET'),
         'facebook_page_id' => getenv('FACEBOOK_PAGE_ID'),
     ],
-
 ];

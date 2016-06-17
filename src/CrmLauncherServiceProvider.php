@@ -95,6 +95,8 @@ class CrmLauncherServiceProvider extends ServiceProvider
             'Rubenwouters\CrmLauncher\Commands\UpdateCases',
             'Rubenwouters\CrmLauncher\Commands\UpdatePublishmentStats',
             'Rubenwouters\CrmLauncher\Commands\UpdateDashboardStats',
+            'Rubenwouters\CrmLauncher\Commands\CheckActivityFlow',
+            'Rubenwouters\CrmLauncher\Commands\ResetNotified',
         ]);
     }
 

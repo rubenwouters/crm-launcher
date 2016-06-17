@@ -22,7 +22,12 @@ class Kernel extends ConsoleKernel
             return Message::exists();
         });
 
+        $schedule->command('crm-launcher:activity')->everyMinute()->when(function() {
+            return Message::exists();
+        });
+
         $schedule->command('crm-launcher:updateDashboardStats')->everyFiveMinutes();
         $schedule->command('crm-launcher:updatePublishmentStats')->everyFiveMinutes();
+        $schedule->command('crm-launcher::resetNotified')->daily();
     }
 }

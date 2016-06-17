@@ -20,6 +20,7 @@ class CreateConfigurationsTable extends Migration
             $table->integer('facebook_likes');
             $table->integer('twitter_followers');
             $table->integer('valid_credentials');
+            $table->integer('notified_today');
             $table->integer('help_disabled');
             $table->integer('linked_facebook');
             $table->integer('linked_twitter');

@@ -37,6 +37,7 @@ class FacebookLoginController extends Controller
     {
         try {
             $fbUser = Socialite::with('facebook')->user();
+
             $token = $fbUser->token;
             $pageAccessToken = $this->getPageAccessToken($token);
 
