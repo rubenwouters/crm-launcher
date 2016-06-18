@@ -37,7 +37,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/crm-launcher/crm-launcher/img/help/cases.png" alt="" />
+                    <img src="/crm-launcher/img/help/cases.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Cases overview</h4>
@@ -113,7 +113,7 @@
 
             <div class="col-xs-12 image">
                 <div class="col-md-9">
-                    <img src="/img/help/team.png" alt="" />
+                    <img src="/crm-launcher/img/help/team.png" alt="" />
                 </div>
                 <div class="col-md-3">
                     <h4>Team</h4>

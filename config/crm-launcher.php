@@ -7,7 +7,7 @@ return [
      */
     'notification' => [
         'crm_notify_from_messages' => getenv('CRM_NOTIFY_FROM_MESSAGES'),
-    ]
+    ],
 
     /**
      * Returns Twitter credentials from config file
