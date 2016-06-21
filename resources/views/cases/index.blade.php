@@ -37,7 +37,7 @@
         @endif
 
         <div class="col-xs-12 col-md-6 col-md-offset-3 search-block">
-                {!! Form::text('keywords', null, ['placeholder' => 'Search case by id, name, keyword, date or social media ', 'class' => 'search-case-bar']) !!}
+                {!! Form::text('keywords', null, ['placeholder' => 'Search case by name, date or social media ', 'class' => 'search-case-bar']) !!}
         </div>
     </div>
     {!! Form::close() !!}
